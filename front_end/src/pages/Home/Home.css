@@ -1,0 +1,47 @@
+.home-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--light-gray);
+}
+
+.year-month-selector {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.year-month-selector h1 {
+  margin-bottom: 16px;
+  color: var(--primary-color);
+}
+
+.year-month-selector p {
+  margin-bottom: 24px;
+  color: var(--dark-gray);
+}
+
+.selector-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.selector-group {
+  display: flex;
+  gap: 16px;
+}
+
+.selector-group .form-group {
+  flex: 1;
+}
+
+.selector-form .btn {
+  padding: 12px;
+  font-size: 16px;
+}

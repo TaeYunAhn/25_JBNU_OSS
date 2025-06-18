@@ -1,0 +1,141 @@
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 15px 0;
+}
+
+.project-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.project-list-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #343a40;
+}
+
+.add-project-btn {
+  background: none;
+  border: none;
+  color: #0d6efd;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.add-project-btn:hover {
+  color: #0a58ca;
+  text-decoration: underline;
+}
+
+.no-projects {
+  padding: 20px;
+  text-align: center;
+  color: #6c757d;
+  border: 1px dashed #dee2e6;
+  border-radius: 5px;
+}
+
+.no-projects p {
+  margin: 5px 0;
+}
+
+.project-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.project-item {
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  padding: 15px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.project-item:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.project-item.selected {
+  border-color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.project-name {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #343a40;
+}
+
+.edit-project-btn {
+  background: none;
+  border: none;
+  color: #6c757d;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 3px 8px;
+  transition: color 0.2s;
+}
+
+.edit-project-btn:hover {
+  color: #0d6efd;
+}
+
+.project-dates {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 8px;
+}
+
+.project-hours {
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.project-hours strong {
+  color: #0d6efd;
+}
+
+.project-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.progress-bar {
+  height: 6px;
+  background-color: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #0d6efd;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  color: #6c757d;
+  text-align: right;
+}
