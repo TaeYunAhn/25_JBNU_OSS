@@ -320,6 +320,7 @@ function Calendar() {
             dayMaxEvents={true}
             eventClick={handleEventClick}
             select={handleDateSelect}
+            datesSet={handleMonthChange}
             locale="ko"
             allDaySlot={false}
             slotMinTime="08:00:00"

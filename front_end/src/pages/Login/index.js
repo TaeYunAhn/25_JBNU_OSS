@@ -31,8 +31,13 @@ function Login() {
     
     try {
       // useAuth 훅의 login 함수 호출
-      await login(username, password);
-      // 로그인 성공 시 useEffect에서 리디렉션 처리
+      const result = await login(username, password);
+      
+      // 로그인 성공 시 즉시 리디렉션 처리
+      if (result && result.success) {
+        navigate('/');
+        return;
+      }
     } catch (err) {
       setError('로그인 중 오류가 발생했습니다.');
       console.error(err);
