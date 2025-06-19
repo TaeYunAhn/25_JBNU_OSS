@@ -14,7 +14,7 @@ import lombok.Setter;
  */
 @Entity
 @Table(name = "monthly_quotas", 
-       uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "year", "month"}))
+       uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "quota_year", "quota_month"}))
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -28,11 +28,11 @@ public class MonthlyQuota {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    @Column(name = "year", nullable = false)
-    private Integer year;
+    @Column(name = "quota_year", nullable = false)
+    private Integer quotaYear;
 
-    @Column(name = "month", nullable = false)
-    private Integer month;
+    @Column(name = "quota_month", nullable = false)
+    private Integer quotaMonth;
 
     @Column(name = "required_hours", nullable = false)
     private Integer requiredHours;
