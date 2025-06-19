@@ -31,6 +31,23 @@ const useAuth = () => {
     }
   }, []);
   
+  // 회원가입
+  const signup = async (email, password, fullName) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await authService.signup(email, password, fullName);
+      return { success: true, user: result };
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || '회원가입 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      throw err; 
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   // 초기 인증 상태 확인
   useEffect(() => {
     checkAuthStatus();
@@ -39,14 +56,14 @@ const useAuth = () => {
   // 로그인
   const login = async (username, password) => {
     setLoading(true);
-    setError(null);
     
     try {
       const result = await authService.login(username, password);
       setUser(result.user);
+      setError(null); 
       return { success: true, user: result.user };
     } catch (err) {
-      const errorMessage = err.response?.data?.message || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.';
+      const errorMessage = err.response?.data?.message || '아이디 또는 비밀번호가 올바르지 않습니다.';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -68,6 +85,7 @@ const useAuth = () => {
     isAuthenticated: !!user,
     login,
     logout,
+    signup,
     checkAuthStatus
   };
 };

@@ -1,15 +1,13 @@
-
-.login-container {
+.register-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   background-color: var(--main-bg-color); 
-  padding: 1rem;
 }
 
-.login-card {
+.register-card {
   background-color: var(--main-bg-color); 
   border-radius: 0;
   padding: 0 2rem;
@@ -20,28 +18,28 @@
   margin-bottom: 50px;
 }
 
-.login-logo {
+.register-logo {
   text-align: center;
 }
 
-.login-logo img {
+.register-logo img {
   height: 200px;
   margin: 0 auto;
 }
 
-.login-title {
+.register-title {
   text-align: center;
   margin-bottom: 2rem;
 }
 
-.login-title h1 {
+.register-title h1 {
   font-size: 2.8rem;
   font-weight: 500;
   color: white;
   margin: 0;
 }
 
-.login-form {
+.register-form {
   text-align: left;
   margin-bottom: 1.5rem;
 }
@@ -104,7 +102,7 @@
   color: #8b8b8b;
 }
 
-.login-btn {
+.register-btn {
   width: 100%;
   padding: 0.75rem;
   font-size: 1rem;
@@ -118,18 +116,18 @@
   letter-spacing: 0.3em;
 }
 
-.login-btn:hover {
+.register-btn:hover {
   background-color: white;
   color: var(--main-button-color);
   font-weight: bold;
 }
 
-.login-btn:disabled {
+.register-btn:disabled {
   background-color: #8b8b8b;
   cursor: not-allowed;
 }
 
-/* 에러 메시지 스타일 수정 */
+/* 에러 메시지 스타일 */
 .error-message {
   color: #E86C60;
   font-size: 0.8rem;
@@ -144,7 +142,7 @@
   box-shadow: 0 0 0 1px #E86C60;
 }
 
-.login-divider {
+.register-divider {
   display: flex;
   align-items: center;
   text-align: center;
@@ -153,22 +151,22 @@
   font-size: 0.9rem;
 }
 
-.login-divider::before,
-.login-divider::after {
+.register-divider::before,
+.register-divider::after {
   content: '';
   flex: 1;
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.login-divider::before {
+.register-divider::before {
   margin-right: 1rem;
 }
 
-.login-divider::after {
+.register-divider::after {
   margin-left: 1rem;
 }
 
-.login-footer {
+.register-footer {
   margin-top: 1rem;
   font-size: 0.9rem;
   color: white;
@@ -176,18 +174,12 @@
   letter-spacing: 0.1em;
 }
 
-.register-link {
+.login-link {
   color: var(--main-button-color);
   text-decoration: none;
   font-weight: 500;
 }
 
-.register-link:hover {
+.login-link:hover {
   text-decoration: underline;
-}
-
-.test-account {
-  margin-top: 1rem;
-  font-size: 0.8rem;
-  opacity: 0.7;
 }

@@ -1,47 +1,137 @@
 .home-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  background-color: var(--light-gray);
-}
-
-.year-month-selector {
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  padding: 32px;
+  color: #344B47;
+  position: relative;
+}
+
+.home-header {
   width: 100%;
-  max-width: 500px;
-  text-align: center;
-}
-
-.year-month-selector h1 {
-  margin-bottom: 16px;
-  color: var(--primary-color);
-}
-
-.year-month-selector p {
-  margin-bottom: 24px;
-  color: var(--dark-gray);
-}
-
-.selector-form {
+  background: linear-gradient(to right, var(--main-bg-color), #B8D3CE);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  align-items: center;
+  padding-top: 40px;
 }
 
-.selector-group {
+.logo-container {
+  text-align: center;
+  z-index: 1;
+}
+
+.callog-logo {
+  height: 120px;
+  width: auto;
+}
+
+.home-content {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  position: relative;
+  margin-top: 50px;
+}
+
+.welcome-text {
+  margin-bottom: 2rem;
+}
+
+.welcome-text h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #344B47;
+  text-align: left;
+}
+
+.welcome-text p {
+  font-size: 18px;
+  font-weight: bold;
+  color: #344B47;
+  opacity: 0.8;
+  text-align: left;
+}
+
+.year-selector {
   display: flex;
-  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
 }
 
-.selector-group .form-group {
-  flex: 1;
+.selected-year {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0 2rem;
+  min-width: 100px;
+  text-align: center;
+  color: #344B47;
+  letter-spacing: 0.3em;
 }
 
-.selector-form .btn {
-  padding: 12px;
-  font-size: 16px;
+.year-nav-btn {
+  background: none;
+  border: none;
+  color: #344B47;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.month-btn {
+  background-color: transparent;
+  border: 2px solid var(--second-main-color);
+  color: #344B47;
+  border-radius: 12px;
+  padding: 1rem 0;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+  letter-spacing: 0.2em;
+}
+
+.month-btn:hover {
+  background-color: rgba(67, 131, 101, 0.1);
+}
+
+.month-btn.selected {
+  background-color: var(--second-main-color);
+  border-color: var(--second-main-color);
+  color: white;
+  font-weight: 500;
+}
+
+.calendar-btn {
+  background-color: var(--second-main-color);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 0;
+  font-size: 1.1rem;
+  width: 80%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+}
+
+.calendar-btn:hover {
+  background-color: #3a7258; /* 어두운 버전의 second-main-color */
 }
