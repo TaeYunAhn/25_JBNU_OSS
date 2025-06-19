@@ -20,7 +20,7 @@ function Login() {
     }
   }, [isAuthenticated, user, navigate]);
   
-  // 인증 오류 처리
+  // 인증 오류 처리 - authError가 변경될 때마다 로컬 에러 상태 업데이트
   useEffect(() => {
     if (authError) {
       setError(authError);
@@ -29,7 +29,17 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    
+    // 클라이언트 측 필드 검증
+    if (!username.trim()) {
+      setError('아이디를 입력하세요.');
+      return;
+    }
+    
+    if (!password.trim()) {
+      setError('비밀번호를 입력하세요.');
+      return;
+    }
     
     try {
       // useAuth 훅의 login 함수 호출
@@ -40,6 +50,12 @@ function Login() {
         navigate('/');
         return;
       }
+      
+      // result가 있지만 success가 아닌 경우 (서버측 검증 실패)
+      if (result && !result.success) {
+        // 명시적으로 에러 메시지 설정 및 유지
+        setError(result.error || '아이디 또는 비밀번호가 올바르지 않습니다.');
+      }
     } catch (err) {
       setError('로그인 중 오류가 발생했습니다.');
       console.error(err);
@@ -48,16 +64,15 @@ function Login() {
 
   return (
     <div className="login-container">
-      <div className="login-card">
+      <div className="login-logo-container">
         <div className="login-logo">
           <img src={logo} alt="Callog" />
         </div>
         <div className="login-title">
           <h1>기록이 쉬워지는 곳 ,</h1>
         </div>
-        
-        {error && <div className="error-message">{error}</div>}
-        
+      </div>
+      <div className="login-card">  
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="username" className="form-label">아이디</label>
@@ -67,8 +82,7 @@ function Login() {
               placeholder="example@callog.com"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="form-control"
-              required
+              className={`form-control ${error ? 'input-error' : ''}`}
             />
           </div>
           
@@ -81,8 +95,7 @@ function Login() {
                 placeholder="**********"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="form-control"
-                required
+                className={`form-control ${error ? 'input-error' : ''}`}
               />
               <button 
                 type="button" 
@@ -112,6 +125,8 @@ function Login() {
           >
             {isLoading ? '로그인 중...' : '로그인'}
           </button>
+          
+          {error && <div className="error-message">{error}</div>}
         </form>
         
         <div className="login-divider">

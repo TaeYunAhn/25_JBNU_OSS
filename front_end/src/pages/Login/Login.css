@@ -1,20 +1,23 @@
+
 .login-container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #344B47; /* Dark green background */
+  background-color: var(--main-bg-color); 
   padding: 1rem;
 }
 
 .login-card {
-  background-color: #344B47; /* Dark green background */
+  background-color: var(--main-bg-color); 
   border-radius: 0;
-  padding: 2rem;
+  padding: 0 2rem;
   width: 100%;
   max-width: 450px;
   text-align: center;
   color: white;
+  margin-bottom: 50px;
 }
 
 .login-logo {
@@ -22,7 +25,7 @@
 }
 
 .login-logo img {
-  height: 180px;
+  height: 200px;
   margin: 0 auto;
 }
 
@@ -32,7 +35,7 @@
 }
 
 .login-title h1 {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   font-weight: 500;
   color: white;
   margin: 0;
@@ -56,11 +59,13 @@
 
 .form-group label {
   color: white;
+  letter-spacing: 0.3em;
 }
 
 .form-group input, .form-group textarea {
   border-radius: 8px;
   height: 50px;
+  letter-spacing: 0.3em;
 }
 
 .form-control {
@@ -104,16 +109,19 @@
   padding: 0.75rem;
   font-size: 1rem;
   margin-top: 1rem;
-  background-color: #00AA94; 
+  background-color: var(--main-button-color); 
   color: white;
-  border: none;
+  border: 2px solid var(--main-button-color);
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;
+  letter-spacing: 0.3em;
 }
 
 .login-btn:hover {
-  background-color: #149E63;
+  background-color: white;
+  color: var(--main-button-color);
+  font-weight: bold;
 }
 
 .login-btn:disabled {
@@ -121,14 +129,19 @@
   cursor: not-allowed;
 }
 
+/* 에러 메시지 스타일 수정 */
 .error-message {
-  background-color: rgba(231, 76, 60, 0.2);
-  color: #fff;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
+  color: #E86C60;
+  font-size: 0.8rem;
   text-align: center;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+/* 에러 발생 시 입력창 스타일 */
+.input-error {
+  border: 1px solid #E86C60 !important;
+  box-shadow: 0 0 0 1px #E86C60;
 }
 
 .login-divider {
@@ -160,10 +173,11 @@
   font-size: 0.9rem;
   color: white;
   text-align: center;
+  letter-spacing: 0.1em;
 }
 
 .register-link {
-  color: #00AA94;
+  color: var(--main-button-color);
   text-decoration: none;
   font-weight: 500;
 }
