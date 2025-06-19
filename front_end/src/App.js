@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Calendar from './pages/Calendar';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import './App.css';
 
 // 임시 인증 확인 함수 (백엔드 연동 전까지 사용)
@@ -20,6 +21,7 @@ function App() {
     <div className="app">
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route 
           path="/" 
           element={

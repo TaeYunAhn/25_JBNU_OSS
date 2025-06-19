@@ -1,0 +1,186 @@
+.register-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--main-bg-color); 
+  padding: 1rem;
+}
+
+.register-card {
+  background-color: var(--main-bg-color); 
+  border-radius: 0;
+  padding: 0 2rem;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+  color: white;
+  margin-bottom: 50px;
+}
+
+.register-logo {
+  text-align: center;
+}
+
+.register-logo img {
+  height: 200px;
+  margin: 0 auto;
+}
+
+.register-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.register-title h1 {
+  font-size: 2.8rem;
+  font-weight: 500;
+  color: white;
+  margin: 0;
+}
+
+.register-form {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.form-group label {
+  color: white;
+  letter-spacing: 0.3em;
+}
+
+.form-group input, .form-group textarea {
+  border-radius: 8px;
+  height: 50px;
+  letter-spacing: 0.3em;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-password svg {
+  width: 20px;
+  height: 20px;
+  color: #8b8b8b;
+}
+
+.register-btn {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  margin-top: 1rem;
+  background-color: var(--main-button-color); 
+  color: white;
+  border: 2px solid var(--main-button-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  letter-spacing: 0.3em;
+}
+
+.register-btn:hover {
+  background-color: white;
+  color: var(--main-button-color);
+  font-weight: bold;
+}
+
+.register-btn:disabled {
+  background-color: #8b8b8b;
+  cursor: not-allowed;
+}
+
+/* 에러 메시지 스타일 */
+.error-message {
+  color: #E86C60;
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+/* 에러 발생 시 입력창 스타일 */
+.input-error {
+  border: 1px solid #E86C60 !important;
+  box-shadow: 0 0 0 1px #E86C60;
+}
+
+.register-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.register-divider::before,
+.register-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.register-divider::before {
+  margin-right: 1rem;
+}
+
+.register-divider::after {
+  margin-left: 1rem;
+}
+
+.register-footer {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: white;
+  text-align: center;
+  letter-spacing: 0.1em;
+}
+
+.login-link {
+  color: var(--main-button-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
