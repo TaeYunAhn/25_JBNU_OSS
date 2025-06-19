@@ -1,10 +1,7 @@
 package com.jbnu.calelog.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 
@@ -19,11 +16,14 @@ import java.time.Instant;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Builder.Default
+    private Long id = null;
 
     @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
@@ -36,10 +36,12 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider", nullable = false, length = 20)
+    @Builder.Default
     private AuthProvider authProvider = AuthProvider.LOCAL;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    @Builder.Default
+    private Instant createdAt = null;
 
     @PrePersist
     protected void onCreate() {
