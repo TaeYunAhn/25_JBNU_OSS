@@ -1,14 +1,107 @@
-## git branch 전략
+## 개발 환경 실행 가이드
 
-> 메인 브랜치 : main, develop
+### 백엔드 실행 (Spring Boot)
+```bash
+cd back_end
+./gradlew bootRun
+```
+- **실행 포트**: http://localhost:8080
+- **H2 콘솔**: http://localhost:8080/h2-console
+- **Swagger UI**: http://localhost:8080/swagger-ui/index.html
 
-> 보조 브랜치 : feature
+### 프론트엔드 실행 (React)
+```bash
+cd front_end
+npm install  # 최초 1회만 실행
+npm start
+```
+- **실행 포트**: http://localhost:3000
+
+## API 테스트 가이드 (Swagger)
+
+### 1단계: Swagger UI 접속
+- URL: http://localhost:8080/swagger-ui/index.html
+- 백엔드가 실행 중인 상태에서 접속
+
+### 2단계: JWT 인증 API 테스트
+
+#### 회원가입 (POST /api/auth/signup)
+```json
+{
+  "email": "test@jbnu.ac.kr",
+  "password": "password123", 
+  "fullName": "김테스트"
+}
+```
+
+#### 로그인 (POST /api/auth/login)
+```json
+{
+  "email": "test@jbnu.ac.kr",
+  "password": "password123"
+}
+```
+→ 응답에서 `accessToken`과 `refreshToken` 복사해두기
+
+#### 토큰 갱신 (POST /api/auth/refresh)
+```json
+{
+  "refreshToken": "로그인에서_받은_refreshToken_붙여넣기"
+}
+```
+
+### 3단계: 인증이 필요한 API 테스트 방법
+1. 로그인 후 받은 `accessToken` 복사
+2. Swagger UI 상단의 🔒 **Authorize** 버튼 클릭
+3. `Bearer {accessToken}` 형식으로 입력
+4. 이제 다른 API들 테스트 가능
+
+## Git Branch 전략
+
+> **메인 브랜치**: main, develop
+
+> **기능 브랜치**: feature
 >
-> > feaure 브랜치 명명 방식은 feature/[기능이름]
+> > 브랜치 명명 방식은 feature/[기능이름]
 
-> 핫픽스 브랜치 : hotfix
+> **핫픽스 브랜치**: hotfix
 >
 > > main -> hotfix -> main
+
+### 개발 워크플로우
+```bash
+# 1. 작업 시작 전 필수
+git remote update
+git pull
+
+# 2. 새 기능 브랜치 생성
+git checkout main
+git checkout -b feature/기능이름
+
+# 3. 개발 완료 후 커밋 및 푸시
+git add .
+git commit -m "feat: 기능 설명"
+git push -u origin feature/기능이름
+
+# 4. GitHub에서 PR 생성 후 팀원 리뷰 받기
+```
+
+## 트러블슈팅
+
+### 백엔드 관련
+- **포트 8080 사용 중 오류**: `lsof -ti:8080 | xargs kill -9` 실행 후 재시작
+- **H2 콘솔 접속 안됨**: 브라우저에서 http://localhost:8080/h2-console 직접 입력
+- **Gradle 빌드 실패**: `./gradlew clean build` 실행
+
+### 프론트엔드 관련  
+- **npm install 취약점 경고**: 정상적인 경고입니다. `npm start` 실행 가능
+- **포트 3000 사용 중**: 다른 포트 사용하거나 `lsof -ti:3000 | xargs kill -9`
+- **모듈 없음 오류**: `rm -rf node_modules package-lock.json && npm install`
+
+### API 연동 관련
+- **CORS 오류**: 백엔드와 프론트엔드 모두 실행 중인지 확인
+- **API 401 오류**: Swagger에서 JWT 토큰 인증 후 테스트
+- **네트워크 오류**: `http://localhost:8080/swagger-ui/index.html`에서 API 직접 테스트
 
 &nbsp;
 
