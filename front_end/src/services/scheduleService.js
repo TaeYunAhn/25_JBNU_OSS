@@ -1,4 +1,8 @@
 import api from './api';
+import generateMockSchedules from '../mocks/data/schedules';
+
+// 캘린더 디자인 및 테스트를 위한 모의 데이터 사용 여부
+const USE_MOCK_DATA = true;
 
 const scheduleService = {
   /**
@@ -9,12 +13,23 @@ const scheduleService = {
    */
   getMonthlySchedules: async (year, month) => {
     try {
-      const response = await api.get('/schedules', {
-        params: { year, month }
-      });
-      return response.data;
+      if (USE_MOCK_DATA) {
+        console.log('모의 일정 데이터 사용 (백엔드 연동 전)');
+        // 모의 데이터 사용
+        return generateMockSchedules(year, month);
+      } else {
+        // 실제 API 호출
+        const response = await api.get('/schedules', {
+          params: { year, month }
+        });
+        return response.data;
+      }
     } catch (error) {
       console.error('월별 일정 조회 중 오류:', error);
+      if (USE_MOCK_DATA) {
+        // 오류 발생 시 기본 모의 데이터 반환
+        return generateMockSchedules(year, month);
+      }
       throw error;
     }
   },
@@ -26,8 +41,14 @@ const scheduleService = {
    */
   createSchedule: async (scheduleData) => {
     try {
-      const response = await api.post('/schedules', scheduleData);
-      return response.data;
+      if (USE_MOCK_DATA) {
+        // 모의 데이터 생성 (실제로는 저장되지 않음)
+        const mockId = Math.floor(Math.random() * 1000) + 100;
+        return { ...scheduleData, id: mockId };
+      } else {
+        const response = await api.post('/schedules', scheduleData);
+        return response.data;
+      }
     } catch (error) {
       console.error('일정 생성 중 오류:', error);
       throw error;
@@ -42,8 +63,13 @@ const scheduleService = {
    */
   updateSchedule: async (scheduleId, scheduleData) => {
     try {
-      const response = await api.put(`/schedules/${scheduleId}`, scheduleData);
-      return response.data;
+      if (USE_MOCK_DATA) {
+        // 모의 데이터 업데이트 (실제로는 저장되지 않음)
+        return { ...scheduleData, id: scheduleId };
+      } else {
+        const response = await api.put(`/schedules/${scheduleId}`, scheduleData);
+        return response.data;
+      }
     } catch (error) {
       console.error('일정 수정 중 오류:', error);
       throw error;
@@ -58,10 +84,15 @@ const scheduleService = {
    */
   deleteSchedule: async (scheduleId, deleteOptions = {}) => {
     try {
-      const response = await api.delete(`/schedules/${scheduleId}`, {
-        data: deleteOptions
-      });
-      return response.data;
+      if (USE_MOCK_DATA) {
+        // 모의 데이터 삭제 (실제로는 삭제되지 않음)
+        return { success: true };
+      } else {
+        const response = await api.delete(`/schedules/${scheduleId}`, {
+          data: deleteOptions
+        });
+        return response.data;
+      } 
     } catch (error) {
       console.error('일정 삭제 중 오류:', error);
       throw error;

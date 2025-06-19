@@ -1,4 +1,8 @@
 import api from './api';
+import projects from '../mocks/data/projects';
+
+// 캘린더 디자인 및 테스트를 위한 모의 데이터 사용 여부
+const USE_MOCK_DATA = true;
 
 const projectService = {
   /**
@@ -7,10 +11,20 @@ const projectService = {
    */
   getMyProjects: async () => {
     try {
-      const response = await api.get('/projects');
-      return response.data;
+      if (USE_MOCK_DATA) {
+        console.log('모의 프로젝트 데이터 사용 (백엔드 연동 전)');
+        // 모의 데이터 사용
+        return projects;
+      } else {
+        const response = await api.get('/projects');
+        return response.data;
+      }
     } catch (error) {
       console.error('프로젝트 목록 조회 중 오류:', error);
+      if (USE_MOCK_DATA) {
+        // 오류 발생 시 기본 모의 데이터 반환
+        return projects;
+      }
       throw error;
     }
   },

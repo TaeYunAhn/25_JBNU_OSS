@@ -31,6 +31,12 @@ function App() {
             </PrivateRoute>
           } 
         />
+        {/* 백엔드 개발 완료 후 다시 인증 요구로 변경 예정 */}
+        <Route 
+          path="/calendar/:year/:month" 
+          element={<Calendar />}
+        />
+        {/* 인증 적용 시 아래 코드 사용
         <Route 
           path="/calendar/:year/:month" 
           element={
@@ -39,6 +45,7 @@ function App() {
             </PrivateRoute>
           } 
         />
+        */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>

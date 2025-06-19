@@ -9,7 +9,7 @@ let lastProjectId = Math.max(...mockProjects.map(p => p.id), 0);
 export const handlers = [
   // 인증 API
   // 회원가입 API
-  rest.post('/api/auth/signup', (req, res, ctx) => {
+  rest.post('/auth/signup', (req, res, ctx) => {
     const { email, password, fullName } = req.body;
     
     if (email && password && fullName) {
@@ -33,11 +33,13 @@ export const handlers = [
   }),
 
   // 로그인 API
-  rest.post('/api/auth/login', (req, res, ctx) => {
+  rest.post('/auth/login', (req, res, ctx) => {
     const { email, password } = req.body;
+    console.log('MSW 로그인 시도:', { email, password });
     
     // 간단한 인증 확인 (테스트 계정 정보에 맞춰 수정)
-    if (email === 'test@jbnu.ac.kr' && password === 'password123') {
+    if ((email === 'test@naver.com' && password === 'password') ||
+        (email === 'test2@naver.com' && password === 'password')) {
       return res(
         ctx.status(200),
         ctx.json({
@@ -45,8 +47,8 @@ export const handlers = [
           refreshToken: 'mock-refresh-token',
           user: {
             id: 1,
-            email: 'test@jbnu.ac.kr',
-            fullName: '김테스트'
+            email: email,
+            fullName: '테스트 사용자'
           }
         })
       );
@@ -62,7 +64,7 @@ export const handlers = [
   }),
   
   // 토큰 재발급 API
-  rest.post('/api/auth/refresh', (req, res, ctx) => {
+  rest.post('/auth/refresh', (req, res, ctx) => {
     const { refreshToken } = req.body;
     
     if (refreshToken === 'mock-refresh-token') {
