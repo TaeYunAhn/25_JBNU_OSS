@@ -19,10 +19,18 @@ const useProject = () => {
     
     try {
       const data = await projectService.getMyProjects();
-      setProjects(data);
+      // 응답 데이터가 배열이 아닌 경우 빈 배열로 초기화
+      if (Array.isArray(data)) {
+        setProjects(data);
+      } else {
+        console.warn('프로젝트 데이터가 배열 형태가 아닙니다:', data);
+        setProjects([]);
+      }
     } catch (err) {
+      console.error('프로젝트를 불러오는 중 오류가 발생했습니다:', err);
+      // 오류 발생 시 빈 배열로 초기화하여 에러 방지
+      setProjects([]);
       setError('프로젝트를 불러오는 중 오류가 발생했습니다.');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -119,22 +127,44 @@ const useProject = () => {
   
   // 진행 중인 프로젝트만 필터링 (현재 날짜가 시작일과 종료일 사이에 있는 프로젝트)
   const getActiveProjects = () => {
+    // projects가 배열인지 확인하고 아닌 경우 빈 배열 반환
+    if (!Array.isArray(projects)) {
+      console.warn('projects가 배열이 아닙니다:', projects);
+      return [];
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0); // 시간 제거
     
     return projects.filter(project => {
-      const startDate = new Date(project.startDate);
-      const endDate = new Date(project.endDate);
-      endDate.setHours(23, 59, 59, 999); // 종료일의 끝으로 설정
+      // project가 유효한 객체인지 확인
+      if (!project || !project.startDate || !project.endDate) {
+        return false;
+      }
       
-      return startDate <= today && today <= endDate;
+      try {
+        const startDate = new Date(project.startDate);
+        const endDate = new Date(project.endDate);
+        endDate.setHours(23, 59, 59, 999); // 종료일의 끝으로 설정
+        
+        return startDate <= today && today <= endDate;
+      } catch (err) {
+        console.error('날짜 비교 중 오류:', err);
+        return false;
+      }
     });
   };
   
   // 프로젝트 월별 진행률 계산 (실제 시간 / 월 필수 시간)
   const calculateProjectProgress = (projectId, totalHours) => {
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return 0;
+    // projects가 배열인지 확인
+    if (!Array.isArray(projects)) {
+      console.warn('projects가 배열이 아닙니다:', projects);
+      return 0;
+    }
+    
+    const project = projects.find(p => p && p.id === projectId);
+    if (!project || !project.monthlyRequiredHours) return 0;
     
     const progress = (totalHours / project.monthlyRequiredHours) * 100;
     return Math.min(Math.max(progress, 0), 100); // 0~100% 범위 내로 제한

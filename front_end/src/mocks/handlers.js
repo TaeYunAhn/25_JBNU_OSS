@@ -8,20 +8,45 @@ let lastProjectId = Math.max(...mockProjects.map(p => p.id), 0);
 // 목업 핸들러
 export const handlers = [
   // 인증 API
-  rest.post('/api/auth/login', (req, res, ctx) => {
-    const { username, password } = req.body;
+  // 회원가입 API
+  rest.post('/api/auth/signup', (req, res, ctx) => {
+    const { email, password, fullName } = req.body;
     
-    // 간단한 인증 확인
-    if (username === 'test' && password === 'password') {
+    if (email && password && fullName) {
+      return res(
+        ctx.status(201),
+        ctx.json({
+          id: 1,
+          email,
+          fullName
+        })
+      );
+    }
+    
+    return res(
+      ctx.status(400),
+      ctx.json({ 
+        errorCode: "INVALID_INPUT", 
+        message: '입력 데이터가 유효하지 않습니다.' 
+      })
+    );
+  }),
+
+  // 로그인 API
+  rest.post('/api/auth/login', (req, res, ctx) => {
+    const { email, password } = req.body;
+    
+    // 간단한 인증 확인 (테스트 계정 정보에 맞춰 수정)
+    if (email === 'test@jbnu.ac.kr' && password === 'password123') {
       return res(
         ctx.status(200),
         ctx.json({
-          token: 'mock-jwt-token',
+          accessToken: 'mock-access-token',
+          refreshToken: 'mock-refresh-token',
           user: {
             id: 1,
-            username: 'test',
-            name: '테스트 사용자',
-            email: 'test@example.com'
+            email: 'test@jbnu.ac.kr',
+            fullName: '김테스트'
           }
         })
       );
@@ -29,19 +54,31 @@ export const handlers = [
     
     return res(
       ctx.status(401),
-      ctx.json({ message: '아이디 또는 비밀번호가 올바르지 않습니다.' })
+      ctx.json({ 
+        errorCode: "INVALID_CREDENTIALS", 
+        message: '이메일 또는 비밀번호가 일치하지 않습니다.' 
+      })
     );
   }),
   
-  rest.get('/api/auth/me', (req, res, ctx) => {
-    // 인증 확인 (실제로는 Authorization 헤더 확인)
+  // 토큰 재발급 API
+  rest.post('/api/auth/refresh', (req, res, ctx) => {
+    const { refreshToken } = req.body;
+    
+    if (refreshToken === 'mock-refresh-token') {
+      return res(
+        ctx.status(200),
+        ctx.json({
+          accessToken: 'new-mock-access-token'
+        })
+      );
+    }
+    
     return res(
-      ctx.status(200),
-      ctx.json({
-        id: 1,
-        username: 'test',
-        name: '테스트 사용자',
-        email: 'test@example.com'
+      ctx.status(401),
+      ctx.json({ 
+        errorCode: "INVALID_REFRESH_TOKEN", 
+        message: '유효하지 않은 리프레시 토큰입니다.' 
       })
     );
   }),

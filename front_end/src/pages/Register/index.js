@@ -6,12 +6,13 @@ import logo from '../../assets/images/logo.png';
 
 function Register() {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, signup } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
+    fullName: '', // 백엔드에서 요구하는 필수 필드 추가
   });
   
   const [showPassword, setShowPassword] = useState(false);
@@ -46,7 +47,10 @@ function Register() {
       return;
     }
     
-
+    if (!formData.fullName.trim()) {
+      setError('이름을 입력하세요.');
+      return;
+    }
     
     if (!formData.password.trim()) {
       setError('비밀번호를 입력하세요.');
@@ -73,29 +77,18 @@ function Register() {
     setIsLoading(true);
     
     try {
-      // 회원가입 API 호출 (Mock Service Worker에서 처리)
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || '회원가입 중 오류가 발생했습니다.');
-      }
+      // 사용자 hook에서 가져온 signup 함수를 사용하여 회원가입 API 호출
+      await signup(formData.email, formData.password, formData.fullName);
       
       // 회원가입 성공 시 로그인 페이지로 이동
       navigate('/login');
       
     } catch (err) {
-      setError(err.message || '회원가입 중 오류가 발생했습니다.');
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError(err.message || '회원가입 중 오류가 발생했습니다.');
+      }
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -109,13 +102,13 @@ function Register() {
           <img src={logo} alt="Callog" />
         </div>
         <div className="register-title">
-          <h1>검침 없이 쌓이는 기록의 시발점.</h1>
+          <h1>겹침 없이 쌓이는 기록의 시발점.</h1>
         </div>
       </div>
       <div className="register-card">  
         <form onSubmit={handleSubmit} className="register-form">
           <div className="form-group">
-            <label htmlFor="email" className="form-label">아이디</label>
+            <label htmlFor="email" className="form-label">이메일</label>
             <input
               id="email"
               name="email"
@@ -127,7 +120,19 @@ function Register() {
             />
           </div>
           
-
+          <div className="form-group">
+            <label htmlFor="fullName" className="form-label">이름</label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              placeholder="홍길동"
+              value={formData.fullName}
+              onChange={handleChange}
+              className={`form-control ${error ? 'input-error' : ''}`}
+            />
+          </div>
+          
           
           <div className="form-group">
             <label htmlFor="password" className="form-label">패스워드</label>

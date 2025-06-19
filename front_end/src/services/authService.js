@@ -2,16 +2,35 @@ import api from './api';
 
 const authService = {
   /**
+   * 회원가입
+   * @param {string} email - 이메일
+   * @param {string} password - 비밀번호
+   * @param {string} fullName - 이름
+   * @returns {Promise} 회원가입 결과
+   */
+  signup: async (email, password, fullName) => {
+    try {
+      const response = await api.post('/auth/signup', { email, password, fullName });
+      return response.data;
+    } catch (error) {
+      console.error('회원가입 중 오류:', error);
+      throw error;
+    }
+  },
+  
+  /**
    * 로그인
-   * @param {string} username - 사용자 아이디
+   * @param {string} email - 사용자 이메일
    * @param {string} password - 비밀번호
    * @returns {Promise} 로그인 결과 및 토큰
    */
   login: async (username, password) => {
     try {
-      const response = await api.post('/auth/login', { username, password });
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
+      const response = await api.post('/auth/login', { email: username, password });
+      if (response.data.accessToken) {
+        localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
       }
       return response.data;
     } catch (error) {
@@ -24,21 +43,39 @@ const authService = {
    * 로그아웃
    */
   logout: () => {
-    localStorage.removeItem('token');
-    // 실제로는 서버에 로그아웃 요청을 보낼 수도 있음
-    // api.post('/auth/logout');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    // api.post('/api/auth/logout');
   },
 
   /**
    * 현재 사용자 정보 조회
-   * @returns {Promise} 현재 로그인한 사용자 정보
+   * @returns {Object} 현재 로그인한 사용자 정보
    */
-  getCurrentUser: async () => {
+  getCurrentUser: () => {
+    return JSON.parse(localStorage.getItem('user'));
+  },
+  
+  /**
+   * 토큰 재발급
+   * @returns {Promise} 새로 발급된 액세스 토큰
+   */
+  refreshToken: async () => {
     try {
-      const response = await api.get('/auth/me');
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        throw new Error('리프레시 토큰이 없습니다');
+      }
+      
+      const response = await api.post('/auth/refresh', { refreshToken });
+      if (response.data.accessToken) {
+        localStorage.setItem('accessToken', response.data.accessToken);
+      }
       return response.data;
     } catch (error) {
-      console.error('사용자 정보 조회 중 오류:', error);
+      console.error('토큰 갱신 중 오류:', error);
+      authService.logout();
       throw error;
     }
   },
@@ -48,7 +85,7 @@ const authService = {
    * @returns {boolean} 로그인 상태 여부
    */
   isAuthenticated: () => {
-    return localStorage.getItem('token') !== null;
+    return localStorage.getItem('accessToken') !== null;
   }
 };
 
