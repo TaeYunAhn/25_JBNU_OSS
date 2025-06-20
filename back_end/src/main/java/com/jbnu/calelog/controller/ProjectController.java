@@ -1,5 +1,11 @@
 package com.jbnu.calelog.controller;
 
+import com.jbnu.calelog.dto.ProjectActivityDto;
+import com.jbnu.calelog.dto.ProjectCreateRequestDto;
+import com.jbnu.calelog.dto.ProjectResponseDto;
+import com.jbnu.calelog.dto.ProjectUpdateRequestDto;
+import com.jbnu.calelog.service.ProjectService;
+import com.jbnu.calelog.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,8 +15,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author Bae-Jihyeok, qowlgur121@gmail.com
@@ -22,7 +34,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/projects")
 @Tag(name = "Projects", description = "프로젝트 관리 API - 활동 프로젝트의 CRUD 및 통계 관리")
 @SecurityRequirement(name = "bearerAuth")
+@RequiredArgsConstructor
 public class ProjectController {
+
+    private final ProjectService projectService;
+    private final UserService userService;
 
     @Operation(
         summary = "프로젝트 목록 조회", 
@@ -56,9 +72,10 @@ public class ProjectController {
         @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @GetMapping
-    public ResponseEntity<?> getProjects() {
-        // TODO: ProjectService.getAllProjectsWithStatistics(userId) 구현 예정
-        return ResponseEntity.ok().body("[]");
+    public ResponseEntity<List<ProjectResponseDto>> getProjects() {
+        Long userId = getCurrentUserId();
+        List<ProjectResponseDto> projects = projectService.getAllProjectsWithStatistics(userId);
+        return ResponseEntity.ok(projects);
     }
 
     @Operation(
@@ -92,7 +109,7 @@ public class ProjectController {
         @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @PostMapping
-    public ResponseEntity<?> createProject(
+    public ResponseEntity<ProjectResponseDto> createProject(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "프로젝트 생성 정보",
             content = @Content(
@@ -107,9 +124,10 @@ public class ProjectController {
                     """)
             )
         )
-        @RequestBody Object createProjectRequest) {
-        // TODO: ProjectService.createProject(request, userId) 구현 예정
-        return ResponseEntity.status(201).body("{}");
+        @Valid @RequestBody ProjectCreateRequestDto createProjectRequest) {
+        Long userId = getCurrentUserId();
+        ProjectResponseDto createdProject = projectService.createProject(createProjectRequest, userId);
+        return ResponseEntity.status(201).body(createdProject);
     }
 
     @Operation(
@@ -123,11 +141,12 @@ public class ProjectController {
         @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateProject(
+    public ResponseEntity<ProjectResponseDto> updateProject(
             @Parameter(description = "수정할 프로젝트 ID") @PathVariable Long id,
-            @RequestBody Object updateProjectRequest) {
-        // TODO: ProjectService.updateProject(id, request, userId) 구현 예정
-        return ResponseEntity.ok().body("{}");
+            @Valid @RequestBody ProjectUpdateRequestDto updateProjectRequest) {
+        Long userId = getCurrentUserId();
+        ProjectResponseDto updatedProject = projectService.updateProject(id, updateProjectRequest, userId);
+        return ResponseEntity.ok(updatedProject);
     }
 
     @Operation(
@@ -140,9 +159,10 @@ public class ProjectController {
         @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProject(
+    public ResponseEntity<Void> deleteProject(
             @Parameter(description = "삭제할 프로젝트 ID") @PathVariable Long id) {
-        // TODO: ProjectService.deleteProject(id, userId) 구현 예정
+        Long userId = getCurrentUserId();
+        projectService.deleteProject(id, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -180,10 +200,29 @@ public class ProjectController {
         @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음")
     })
     @GetMapping("/{id}/activities")
-    public ResponseEntity<?> getProjectActivities(
+    public ResponseEntity<List<ProjectActivityDto>> getProjectActivities(
             @Parameter(description = "조회할 프로젝트 ID") @PathVariable Long id,
             @Parameter(description = "조회할 개수 (기본값: 5)") @RequestParam(defaultValue = "5") int limit) {
-        // TODO: ProjectService.getRecentActivities(id, limit, userId) 구현 예정
-        return ResponseEntity.ok().body("[]");
+        Long userId = getCurrentUserId();
+        List<ProjectActivityDto> activities = projectService.getRecentActivities(id, limit, userId);
+        return ResponseEntity.ok(activities);
+    }
+
+    /**
+     * 현재 인증된 사용자의 ID를 SecurityContext에서 추출
+     */
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication != null && authentication.getDetails() instanceof Long) {
+            return (Long) authentication.getDetails();
+        }
+        
+        // JWT에서 사용자 ID 추출 실패 시 이메일로 조회
+        if (authentication != null && authentication.getName() != null) {
+            return userService.findByEmail(authentication.getName()).getId();
+        }
+        
+        throw new RuntimeException("인증된 사용자 정보를 찾을 수 없습니다.");
     }
 }
