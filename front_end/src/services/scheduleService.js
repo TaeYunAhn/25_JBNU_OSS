@@ -1,10 +1,131 @@
 import api from './api';
 import generateMockSchedules from '../mocks/data/schedules';
+import { addDays, addWeeks, addMonths, format, parse, getDay } from 'date-fns';
 
 // 캘린더 디자인 및 테스트를 위한 모의 데이터 사용 여부
 const USE_MOCK_DATA = true;
 
+// 반복 일정 생성을 위한 헬퍼 함수
+const generateRecurringSchedules = (baseSchedule, count = 10) => {
+  const { repeat } = baseSchedule;
+  if (!repeat || !repeat.enabled || !repeat.frequency) return [baseSchedule];
+  
+  const schedules = [];
+  const baseDate = parse(baseSchedule.date, 'yyyy-MM-dd', new Date());
+  const baseId = Math.floor(Math.random() * 1000) + 100;
+  
+  // 기본 일정 추가
+  schedules.push({ ...baseSchedule, id: baseId, recurrenceId: baseId });
+  
+  // 종료 개수
+  let maxCount;
+  if (repeat.endType === 'count') {
+    maxCount = Math.min(repeat.endCount, 100); // 최대 100개로 제한
+  } else {
+    maxCount = count; // 기본값
+  }
+  
+  // 반복 일정 생성
+  let currentDate = baseDate;
+  let currentCount = 1;
+  
+  while (currentCount < maxCount) {
+    let nextDate;
+    
+    switch (repeat.frequency) {
+      case 'daily':
+        nextDate = addDays(currentDate, repeat.interval);
+        break;
+      case 'weekly':
+        nextDate = addWeeks(currentDate, repeat.interval);
+        // 요일 설정이 있으면 해당 요일에만 일정 생성
+        if (repeat.days && repeat.days.length > 0) {
+          // 요일 확인
+          const dayOfWeek = getDay(nextDate).toString();
+          if (!repeat.days.includes(dayOfWeek)) {
+            currentDate = nextDate;
+            continue; // 선택한 요일이 아니면 채우지 않고 다음으로
+          }
+        }
+        break;
+      case 'monthly':
+        nextDate = addMonths(currentDate, repeat.interval);
+        break;
+      default:
+        return schedules;
+    }
+    
+    // 종료 날짜 확인
+    if (repeat.endType === 'date' && repeat.endDate) {
+      const endDate = parse(repeat.endDate, 'yyyy-MM-dd', new Date());
+      if (nextDate > endDate) {
+        break;
+      }
+    }
+    
+    // 새 일정 추가
+    const newSchedule = {
+      ...baseSchedule,
+      id: baseId + currentCount,
+      recurrenceId: baseId, // 반복 그룹 식별자
+      date: format(nextDate, 'yyyy-MM-dd')
+    };
+    
+    schedules.push(newSchedule);
+    currentDate = nextDate;
+    currentCount++;
+  }
+  
+  return schedules;
+};
+
 const scheduleService = {
+  /**
+   * 특정 프로젝트의 최근 활동 내역 조회
+   * @param {number} projectId - 조회할 프로젝트 ID
+   * @param {number} limit - 조회할 활동 내역 개수 제한
+   * @returns {Promise} 해당 프로젝트의 최근 활동 내역
+   */
+  getProjectRecentActivities: async (projectId, limit = 5) => {
+    try {
+      if (USE_MOCK_DATA) {
+        // 모의 데이터에서 해당 프로젝트의 일정만 필터링
+        const projectSchedules = await generateMockSchedules();
+        
+        // 해당 프로젝트의 일정만 필터링 및 최근 순으로 정렬
+        const activities = projectSchedules
+          .filter(schedule => schedule.type === 'PROJECT' && schedule.projectId === projectId)
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, limit)
+          .map(schedule => {
+            // 최근 3개월 내 날짜 생성
+            const today = new Date();
+            const randomDaysAgo = Math.floor(Math.random() * 90); // 0~90일 사이 랜덤
+            const activityDate = new Date(today);
+            activityDate.setDate(today.getDate() - randomDaysAgo);
+            
+            return {
+              id: schedule.id,
+              content: schedule.content,
+              date: format(activityDate, 'yyyy-MM-dd'),  // 유효한 날짜 포맷 보장
+              startTime: schedule.startTime,
+              endTime: schedule.endTime
+            };
+          });
+          
+        return activities;
+      } else {
+        // 실제 API 호출
+        const response = await api.get(`/projects/${projectId}/activities`, {
+          params: { limit }
+        });
+        return response.data;
+      }
+    } catch (error) {
+      console.error('프로젝트 활동 내역 조회 중 오류:', error);
+      return [];
+    }
+  },
   /**
    * 월별 일정 조회
    * @param {number} year - 조회할 년도
@@ -37,15 +158,34 @@ const scheduleService = {
   /**
    * 새 일정 생성
    * @param {Object} scheduleData - 생성할 일정 데이터
-   * @returns {Promise} 생성된 일정 정보
+   * @returns {Promise} 생성된 일정 정보 또는 반복 일정인 경우 일정 목록
    */
   createSchedule: async (scheduleData) => {
     try {
       if (USE_MOCK_DATA) {
-        // 모의 데이터 생성 (실제로는 저장되지 않음)
-        const mockId = Math.floor(Math.random() * 1000) + 100;
-        return { ...scheduleData, id: mockId };
+        // 반복 설정이 있는지 확인
+        const hasRecurrence = scheduleData.repeat && 
+                            scheduleData.repeat.enabled && 
+                            scheduleData.repeat.frequency;
+        
+        if (hasRecurrence) {
+          // 반복 일정 생성
+          console.log('반복 일정 생성 (백엔드 연동 전)');
+          const recurringSchedules = generateRecurringSchedules(scheduleData);
+          
+          // 일정 목록과 최초 일정 객체 반환
+          return {
+            schedules: recurringSchedules,
+            mainSchedule: recurringSchedules[0]
+          };
+        } else {
+          // 일반 일정 생성
+          const mockId = Math.floor(Math.random() * 1000) + 100;
+          const createdSchedule = { ...scheduleData, id: mockId };
+          return { mainSchedule: createdSchedule, schedules: [createdSchedule] };
+        }
       } else {
+        // 실제 API 호출 - 백엔드에서 처리하도록 함
         const response = await api.post('/schedules', scheduleData);
         return response.data;
       }

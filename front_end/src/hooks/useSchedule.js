@@ -43,16 +43,34 @@ const useSchedule = (initialYear, initialMonth) => {
     setError(null);
     
     try {
-      // 일정 중복 체크
-      const conflictCheck = checkScheduleConflict(scheduleData, schedules);
-      if (conflictCheck.hasConflict) {
-        setError(conflictCheck.error || '일정이 중복됩니다.');
-        return { success: false, error: conflictCheck.error, conflicts: conflictCheck.conflictSchedules };
+      // 반복 일정이 있는지 확인
+      const isRecurring = scheduleData.repeat && 
+                          scheduleData.repeat.enabled && 
+                          scheduleData.repeat.frequency;
+                          
+      // 반복이 아닌 일반 일정의 중복 체크
+      if (!isRecurring) {
+        const conflictCheck = checkScheduleConflict(scheduleData, schedules);
+        if (conflictCheck.hasConflict) {
+          setError(conflictCheck.error || '일정이 중복됩니다.');
+          return { success: false, error: conflictCheck.error, conflicts: conflictCheck.conflictSchedules };
+        }
       }
       
-      const newSchedule = await scheduleService.createSchedule(scheduleData);
-      setSchedules(prev => [...prev, newSchedule]);
-      return { success: true, schedule: newSchedule };
+      // 일정 생성
+      const result = await scheduleService.createSchedule(scheduleData);
+      
+      if (isRecurring) {
+        // 반복 일정의 경우 - 여러 일정이 생성됨
+        const { schedules: newSchedules, mainSchedule } = result;
+        setSchedules(prev => [...prev, ...newSchedules]);
+        return { success: true, schedule: mainSchedule, recurringSchedules: newSchedules };
+      } else {
+        // 일반 일정의 경우
+        const { mainSchedule } = result;
+        setSchedules(prev => [...prev, mainSchedule]);
+        return { success: true, schedule: mainSchedule };
+      }
     } catch (err) {
       setError('일정을 생성하는 중 오류가 발생했습니다.');
       console.error(err);
@@ -95,8 +113,29 @@ const useSchedule = (initialYear, initialMonth) => {
     setError(null);
     
     try {
-      await scheduleService.deleteSchedule(scheduleId, deleteOptions);
-      setSchedules(prev => prev.filter(schedule => schedule.id !== scheduleId));
+      // 삭제할 일정 찾기
+      const scheduleToDelete = schedules.find(s => s.id === scheduleId);
+      
+      // 반복 일정 처리
+      if (scheduleToDelete && scheduleToDelete.recurrenceId) {
+        // 반복 일정 전체 삭제 옵션 확인
+        if (deleteOptions.deleteAllRecurrences) {
+          const recurrenceId = scheduleToDelete.recurrenceId;
+          await scheduleService.deleteSchedule(scheduleId, { deleteAllRecurrences: true });
+          
+          // 같은 recurrenceId를 가진 모든 일정 삭제
+          setSchedules(prev => prev.filter(s => s.recurrenceId !== recurrenceId));
+        } else {
+          // 현재 일정만 삭제
+          await scheduleService.deleteSchedule(scheduleId, { deleteAllRecurrences: false });
+          setSchedules(prev => prev.filter(s => s.id !== scheduleId));
+        }
+      } else {
+        // 일반 일정 삭제 
+        await scheduleService.deleteSchedule(scheduleId);
+        setSchedules(prev => prev.filter(s => s.id !== scheduleId));
+      }
+      
       return { success: true };
     } catch (err) {
       setError('일정을 삭제하는 중 오류가 발생했습니다.');
@@ -138,6 +177,17 @@ const useSchedule = (initialYear, initialMonth) => {
     return totalMinutes / 60; // 시간 단위로 반환
   };
   
+  // 특정 프로젝트의 최근 활동 내역 조회
+  const getProjectRecentActivities = async (projectId, limit = 5) => {
+    try {
+      const activities = await scheduleService.getProjectRecentActivities(projectId, limit);
+      return activities;
+    } catch (err) {
+      console.error('프로젝트 활동 내역 조회 중 오류:', err);
+      return [];
+    }
+  };
+
   return {
     schedules,
     loading,
@@ -150,7 +200,8 @@ const useSchedule = (initialYear, initialMonth) => {
     deleteSchedule,
     getSchedulesByDate,
     getSchedulesByProject,
-    calculateTotalHoursByProject
+    calculateTotalHoursByProject,
+    getProjectRecentActivities
   };
 };
 

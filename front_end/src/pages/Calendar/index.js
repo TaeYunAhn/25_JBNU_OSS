@@ -4,6 +4,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import { format } from 'date-fns';
 import CalendarToolbar from '../../components/calendar/CalendarToolbar';
 import ScheduleModal from '../../components/calendar/ScheduleModal';
 import ProjectList from '../../components/project/ProjectList';
@@ -88,12 +89,29 @@ function Calendar() {
   
   // 새 일정 생성 모달 열기
   const handleDateSelect = (selectInfo) => {
+    // 선택한 정확한 날짜와 시간을 가져오기
     const selectedDate = new Date(selectInfo.start);
+    const selectedEndDate = new Date(selectInfo.end);
     
+    // 시간 정보 추출
+    const startHour = selectedDate.getHours().toString().padStart(2, '0');
+    const startMinute = selectedDate.getMinutes().toString().padStart(2, '0');
+    const endHour = selectedEndDate.getHours().toString().padStart(2, '0');
+    const endMinute = selectedEndDate.getMinutes().toString().padStart(2, '0');
+    
+    // 시간 문자열 포맷팅
+    const startTime = `${startHour}:${startMinute}`;
+    const endTime = `${endHour}:${endMinute}`;
+    
+    // 드래그 선택 완료된 날짜와 시간 정보를 모달에 전달
     setScheduleModal({
       isOpen: true,
       mode: 'create',
-      selectedSchedule: null,
+      selectedSchedule: {
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        startTime: startTime,
+        endTime: endTime
+      },
       selectedDate
     });
   };
@@ -307,14 +325,39 @@ function Calendar() {
             initialView={calendarView}
             initialDate={initialDate}
             headerToolbar={false} // 커스텀 툴바 사용
-            events={schedules.map(schedule => ({
-              id: schedule.id.toString(),
-              title: schedule.title,
-              start: schedule.start || `${schedule.date}T${schedule.startTime}`,
-              end: schedule.end || `${schedule.date}T${schedule.endTime}`,
-              backgroundColor: schedule.type === 'PROJECT' ? '#4a6cf7' : '#e74c3c',
-              classNames: schedule.type === 'PROJECT' ? ['project-event'] : ['inactive-event']
-            }))}
+            selectConstraint={{ // 하루를 넘어가는 드래그 선택 제한
+              startTime: '00:00',
+              endTime: '24:00',
+              daysOfWeek: [0, 1, 2, 3, 4, 5, 6] // 모든 요일
+            }}
+            selectAllow={(selectInfo) => {
+              // 하루를 넘기지 않도록 제한
+              const startDate = new Date(selectInfo.start).setHours(0, 0, 0, 0);
+              const endDate = new Date(selectInfo.end).setHours(0, 0, 0, 0);
+              return startDate === endDate;
+            }}
+            events={schedules.map(schedule => {
+              // 프로젝트 색상 찾기
+              let backgroundColor = '#e74c3c'; // 기본 색상 (비활동 일정)
+              
+              if (schedule.type === 'PROJECT' && schedule.projectId) {
+                const project = projects.find(p => p.id === schedule.projectId);
+                if (project && project.color) {
+                  backgroundColor = project.color;
+                } else {
+                  backgroundColor = '#4a6cf7'; // 프로젝트 기본 색상
+                }
+              }
+              
+              return {
+                id: schedule.id.toString(),
+                title: schedule.title,
+                start: schedule.start || `${schedule.date}T${schedule.startTime}`,
+                end: schedule.end || `${schedule.date}T${schedule.endTime}`,
+                backgroundColor: backgroundColor,
+                classNames: schedule.type === 'PROJECT' ? ['project-event'] : ['inactive-event']
+              };
+            })}
             selectable={true}
             selectMirror={true}
             dayMaxEvents={true}
@@ -323,9 +366,10 @@ function Calendar() {
             datesSet={handleMonthChange}
             locale="ko"
             allDaySlot={false}
-            slotMinTime="08:00:00"
-            slotMaxTime="22:00:00"
+            slotMinTime="00:00:00"
+            slotMaxTime="24:00:00"
             height="auto"
+            selectOverlap={true} // 기존 이벤트와 겹쳐도 선택 가능
           />
         </div>
       </div>
@@ -334,12 +378,12 @@ function Calendar() {
       <ScheduleModal
         isOpen={scheduleModal.isOpen}
         mode={scheduleModal.mode}
-        schedule={scheduleModal.selectedSchedule}
-        selectedDate={scheduleModal.selectedDate}
-        projects={projects}
         onSubmit={handleScheduleSubmit}
         onDelete={handleScheduleDelete}
         onClose={closeScheduleModal}
+        schedule={scheduleModal.selectedSchedule} 
+        initialDate={scheduleModal.selectedDate}
+        projects={projects}
       />
       
       {/* 프로젝트 모달 */}

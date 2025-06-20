@@ -97,10 +97,41 @@
   background-color: #e9ecef;
 }
 
+/* 색상 선택기 스타일 */
+.color-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.color-option {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  box-sizing: content-box;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+}
+
+.color-option.selected {
+  border: 2px solid #344B47;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
 /* 반응형 디자인 */
 @media (max-width: 576px) {
   .form-row {
     flex-direction: column;
     gap: 15px;
+  }
+  
+  .color-selector {
+    justify-content: flex-start;
   }
 }

@@ -36,8 +36,22 @@ const projectService = {
    */
   createProject: async (projectData) => {
     try {
-      const response = await api.post('/projects', projectData);
-      return response.data;
+      if (USE_MOCK_DATA) {
+        // 목업 데이터 사용 시 프로젝트 생성 로직
+        console.log('목업 프로젝트 생성 (백엔드 연동 전)');
+        const newId = Math.max(...projects.map(p => p.id)) + 1;
+        const newProject = {
+          ...projectData,
+          id: newId
+        };
+        
+        // 목업 데이터에 추가 (실제로는 로컬에만 저장되며 새로고침 시 초기화됨)
+        projects.push(newProject);
+        return newProject;
+      } else {
+        const response = await api.post('/projects', projectData);
+        return response.data;
+      }
     } catch (error) {
       console.error('프로젝트 생성 중 오류:', error);
       throw error;
@@ -52,8 +66,30 @@ const projectService = {
    */
   updateProject: async (projectId, projectData) => {
     try {
-      const response = await api.put(`/projects/${projectId}`, projectData);
-      return response.data;
+      if (USE_MOCK_DATA) {
+        // 목업 데이터 사용 시 프로젝트 수정 로직
+        console.log('목업 프로젝트 수정 (백엔드 연동 전)');
+        
+        // 프로젝트 찾기
+        const index = projects.findIndex(p => p.id === projectId);
+        
+        if (index !== -1) {
+          // 기존 프로젝트 수정
+          const updatedProject = {
+            ...projects[index],
+            ...projectData,
+            id: projectId // ID 변경 방지
+          };
+          
+          projects[index] = updatedProject;
+          return updatedProject;
+        } else {
+          throw new Error('프로젝트를 찾을 수 없습니다.');
+        }
+      } else {
+        const response = await api.put(`/projects/${projectId}`, projectData);
+        return response.data;
+      }
     } catch (error) {
       console.error('프로젝트 수정 중 오류:', error);
       throw error;
@@ -67,8 +103,21 @@ const projectService = {
    */
   deleteProject: async (projectId) => {
     try {
-      const response = await api.delete(`/projects/${projectId}`);
-      return response.data;
+      if (USE_MOCK_DATA) {
+        // 목업 데이터 사용 시 프로젝트 삭제 로직
+        console.log('목업 프로젝트 삭제 (백엔드 연동 전)');
+        
+        const index = projects.findIndex(p => p.id === projectId);
+        if (index !== -1) {
+          projects.splice(index, 1);
+          return { success: true };
+        } else {
+          throw new Error('프로젝트를 찾을 수 없습니다.');
+        }
+      } else {
+        const response = await api.delete(`/projects/${projectId}`);
+        return response.data;
+      }
     } catch (error) {
       console.error('프로젝트 삭제 중 오류:', error);
       throw error;

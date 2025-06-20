@@ -10,7 +10,7 @@ import './ScheduleModal.css';
  * @param {boolean} props.isOpen - 모달 표시 여부
  * @param {string} props.mode - 모달 모드 ('create', 'edit', 'view')
  * @param {Object} props.schedule - 일정 데이터 (수정/조회 시)
- * @param {Date} props.selectedDate - 선택된 날짜 (생성 시)
+ * @param {Date} props.initialDate - 선택된 날짜 (생성 시)
  * @param {Array} props.projects - 프로젝트 목록
  * @param {Function} props.onSubmit - 제출 핸들러 (생성/수정)
  * @param {Function} props.onDelete - 삭제 핸들러
@@ -21,7 +21,7 @@ const ScheduleModal = ({
   isOpen,
   mode = 'view',
   schedule,
-  selectedDate,
+  initialDate,
   projects,
   onSubmit,
   onDelete,
@@ -86,7 +86,8 @@ const ScheduleModal = ({
     >
       {(currentMode === 'create' || currentMode === 'edit') ? (
         <ScheduleForm
-          schedule={currentMode === 'edit' ? schedule : null}
+          schedule={currentMode === 'edit' ? schedule : (currentMode === 'create' && schedule ? schedule : null)}
+          initialDate={initialDate}
           projects={projects}
           onSubmit={handleSubmit}
           onCancel={handleCancel}

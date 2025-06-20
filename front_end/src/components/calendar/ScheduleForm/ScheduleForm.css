@@ -13,7 +13,7 @@
 .form-group label {
   font-weight: 500;
   font-size: 0.9rem;
-  color: #495057;
+  color: #495057 !important;
 }
 
 .form-group input,
@@ -61,7 +61,7 @@
 }
 
 .btn-primary {
-  background-color: #0d6efd;
+  background-color: var(--main-button-color);
   color: white;
   border: none;
   padding: 10px 15px;
@@ -72,7 +72,7 @@
 }
 
 .btn-primary:hover {
-  background-color: #0b5ed7;
+  background-color: #008c76;
 }
 
 .btn-primary:disabled {
@@ -95,10 +95,265 @@
   background-color: #e9ecef;
 }
 
+/* 반복 설정 토글 */
+.repeat-toggle {
+  display: flex;
+  align-items: center;
+  background-color: #f2f8f7;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #e0e0e0;
+}
+
+.repeat-toggle input[type="checkbox"] {
+  margin-right: 12px;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--main-button-color);
+}
+
+.repeat-toggle label {
+  font-weight: 600;
+  cursor: pointer;
+  color: #202020;
+  font-size: 16px;
+}
+
+/* 반복 설정 섹션 */
+.repeat-settings {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 18px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  color: #202020;
+}
+
+.repeat-section h4 {
+  font-size: 16px;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.repeat-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.repeat-row label {
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #202020;
+}
+
+.repeat-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.repeat-option input[type="number"] {
+  width: 60px;
+  text-align: center;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.repeat-option select {
+  flex-grow: 1;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* 최근 활동 내역 스타일 */
+.schedule-form-container {
+  display: flex;
+  gap: 20px;
+}
+
+.schedule-form {
+  flex: 3;
+}
+
+.recent-activities-container {
+  flex: 2;
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+  border-left: 4px solid var(--main-button-color);
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.recent-activities-container h3 {
+  color: var(--main-bg-color);
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.activities-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-item {
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.activity-date {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.activity-content {
+  color: var(--main-bg-color);
+  line-height: 1.4;
+}
+
+.no-activities {
+  color: #666;
+  font-style: italic;
+  padding: 15px 0;
+  text-align: center;
+}
+
+.loading-activities {
+  color: #666;
+  padding: 15px 0;
+  text-align: center;
+}
+
+.repeat-option .full-width {
+  width: 100%;
+  min-width: 200px;
+}
+
+/* 요일 선택기 */
+.day-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.day-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.day-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.day-btn.selected {
+  background-color: var(--main-button-color);
+  color: white;
+  border-color: var(--main-button-color);
+}
+
+/* 종료 옵션 */
+.end-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.end-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.end-option input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.end-option label {
+  margin: 0;
+  font-weight: normal;
+  cursor: pointer;
+  color: #202020;
+}
+
+.end-option input[type="date"] {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.end-option input[type="number"] {
+  width: 60px;
+  text-align: center;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 576px) {
   .form-row {
     flex-direction: column;
     gap: 15px;
+  }
+}
+
+/* 반응형 스타일 */
+@media (max-width: 576px) {
+  .form-group {
+    padding: 10px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .form-actions {
+    padding: 10px;
+  }
+  
+  .day-selector {
+    justify-content: space-between;
+  }
+  
+  .day-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .end-option {
+    flex-wrap: wrap;
   }
 }

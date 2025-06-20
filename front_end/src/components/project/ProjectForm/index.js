@@ -2,6 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { validateProject } from '../../../utils/validationUtils';
 import './ProjectForm.css';
 
+// 프로젝트 색상 옵션
+const PROJECT_COLORS = [
+  { id: 'blue', label: '파란색', value: '#4a6cf7' },
+  { id: 'green', label: '초록색', value: '#00AA94' },
+  { id: 'red', label: '빨간색', value: '#e74c3c' },
+  { id: 'purple', label: '보라색', value: '#9b59b6' },
+  { id: 'orange', label: '주황색', value: '#e67e22' },
+  { id: 'teal', label: '청록색', value: '#1abc9c' },
+  { id: 'yellow', label: '노란색', value: '#f1c40f' },
+  { id: 'pink', label: '분홍색', value: '#e84393' },
+  { id: 'gray', label: '회색', value: '#95a5a6' },
+  { id: 'black', label: '검정색', value: '#34495e' }
+];
+
 /**
  * 프로젝트 생성 및 수정 폼 컴포넌트
  * @param {Object} props
@@ -14,10 +28,10 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
   // 기본 상태 초기화
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
     startDate: '',
     endDate: '',
-    monthlyRequiredHours: 0
+    monthlyRequiredHours: 0,
+    color: PROJECT_COLORS[0].value
   });
   
   const [errors, setErrors] = useState({});
@@ -28,10 +42,10 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
     if (project) {
       setFormData({
         name: project.name || '',
-        description: project.description || '',
         startDate: project.startDate || '',
         endDate: project.endDate || '',
-        monthlyRequiredHours: project.monthlyRequiredHours || 0
+        monthlyRequiredHours: project.monthlyRequiredHours || 0,
+        color: project.color || PROJECT_COLORS[0].value
       });
     }
   }, [project]);
@@ -95,14 +109,19 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
       </div>
       
       <div className="form-group">
-        <label htmlFor="description">설명</label>
-        <textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="프로젝트 설명을 입력하세요"
-        />
+        <label htmlFor="color">프로젝트 색상 *</label>
+        <div className="color-selector">
+          {PROJECT_COLORS.map((colorOption) => (
+            <div 
+              key={colorOption.id} 
+              className={`color-option ${formData.color === colorOption.value ? 'selected' : ''}`}
+              style={{ backgroundColor: colorOption.value }}
+              onClick={() => setFormData({...formData, color: colorOption.value})}
+              title={colorOption.label}
+            />
+          ))}
+        </div>
+        {errors.color && <span className="error">{errors.color}</span>}
       </div>
       
       <div className="form-row">
