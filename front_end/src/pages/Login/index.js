@@ -27,7 +27,8 @@ function Login() {
     }
   }, [authError]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
+    // 페이지 새로고침 방지
     e.preventDefault();
     
     // 클라이언트 측 필드 검증
@@ -41,24 +42,32 @@ function Login() {
       return;
     }
     
+    // 비동기 함수를 별도로 실행하여 폼 제출과 분리
+    loginUser();
+  };
+  
+  // 로그인 처리를 별도 함수로 분리
+  const loginUser = async () => {
     try {
       // useAuth 훅의 login 함수 호출
       const result = await login(username, password);
       
-      // 로그인 성공 시 즉시 리디렉션 처리
+      console.log('로그인 결과:', result); // 디버깅용
+      
+      // 로그인 성공 시에만 리디렉션 처리
       if (result && result.success) {
         navigate('/');
-        return;
-      }
-      
-      // result가 있지만 success가 아닌 경우 (서버측 검증 실패)
-      if (result && !result.success) {
-        // 명시적으로 에러 메시지 설정 및 유지
-        setError(result.error || '아이디 또는 비밀번호가 올바르지 않습니다.');
+      } else {
+        // 실패한 경우 에러 메시지 설정
+        const errorMessage = result?.error || '아이디 또는 비밀번호가 올바르지 않습니다.';
+        setError(errorMessage);
+        // 폼 리셋하지 않고 비밀번호만 지우기
+        setPassword('');
       }
     } catch (err) {
-      setError('로그인 중 오류가 발생했습니다.');
-      console.error(err);
+      console.error('로그인 오류:', err);
+      setError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setPassword('');
     }
   };
 
@@ -73,7 +82,7 @@ function Login() {
         </div>
       </div>
       <div className="login-card">  
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form" noValidate>
           <div className="form-group">
             <label htmlFor="username" className="form-label">아이디</label>
             <input
@@ -122,6 +131,10 @@ function Login() {
             type="submit" 
             className="login-btn" 
             disabled={isLoading}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit(e);
+            }}
           >
             {isLoading ? '로그인 중...' : '로그인'}
           </button>

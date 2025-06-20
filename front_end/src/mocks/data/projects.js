@@ -8,7 +8,7 @@ const projects = [
     monthlyRequiredHours: 40,
     startDate: '2025-01-01', 
     endDate: '2025-12-31',
-    description: '소프트웨어 중심대학 졸업 프로젝트'
+    color: '#4a6cf7' // 파란색
   },
   { 
     id: 2, 
@@ -16,7 +16,7 @@ const projects = [
     monthlyRequiredHours: 20, 
     startDate: '2025-01-01', 
     endDate: '2025-12-31',
-    description: '코딩 테스트 대비 알고리즘 문제 풀이 스터디'
+    color: '#e74c3c' // 빨간색
   },
   { 
     id: 3, 
@@ -24,7 +24,7 @@ const projects = [
     monthlyRequiredHours: 80, 
     startDate: '2025-06-01', 
     endDate: '2025-08-31',
-    description: '여름방학 웹 개발 인턴십 프로그램'
+    color: '#00AA94' // 초록색
   },
   { 
     id: 4, 
@@ -32,7 +32,7 @@ const projects = [
     monthlyRequiredHours: 30, 
     startDate: '2025-03-01', 
     endDate: '2025-12-31',
-    description: '학과 연구실 인공지능 프로젝트 참여'
+    color: '#9b59b6' // 보라색
   }
 ];
 
