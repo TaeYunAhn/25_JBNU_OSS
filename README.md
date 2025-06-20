@@ -50,11 +50,30 @@ npm start
 }
 ```
 
-### 3단계: 인증이 필요한 API 테스트 방법
-1. 로그인 후 받은 `accessToken` 복사
-2. Swagger UI 상단의 🔒 **Authorize** 버튼 클릭
-3. `Bearer {accessToken}` 형식으로 입력
-4. 이제 다른 API들 테스트 가능
+### 3단계: JWT 인증으로 API 테스트 방법
+
+#### Swagger UI에서 JWT 토큰 설정
+1. 로그인 API에서 받은 `accessToken` 전체를 복사
+   ```
+   예시: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ0ZXN0QGpibm...
+   ```
+
+2. Swagger UI 페이지 상단 오른쪽의 🔒 **Authorize** 버튼 클릭
+
+3. 팝업창에서 **Value** 입력란에 다음과 같이 입력:
+   ```
+   Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ0ZXN0QGpibm...
+   ```
+   ⚠️ **주의**: `Bearer ` (Bearer + 공백) 뒤에 토큰을 붙여야 함
+
+4. **Authorize** 버튼 클릭하여 인증 완료
+
+5. 🔒 표시가 있는 모든 API 테스트 가능 (프로젝트 CRUD, 일정 관리 등)
+
+#### 토큰 만료 시 대응방법
+- Access Token은 24시간 후 만료됨
+- 만료 시 `/api/auth/refresh` API로 새 토큰 발급
+- 또는 다시 로그인하여 새 토큰 획득
 
 ## Git Branch 전략
 
