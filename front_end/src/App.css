@@ -35,8 +35,13 @@
 }
 
 .btn-primary {
-  background-color: var(--primary-color);
+  background-color: var(--main-button-color);
   color: white;
+}
+
+.btn-primary:hover {
+  filter: brightness(0.85);
+  transition: filter 0.2s ease-in-out;
 }
 
 .btn-secondary {

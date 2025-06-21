@@ -1,7 +1,7 @@
 .schedule-form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
 .form-group {
@@ -99,11 +99,10 @@
 .repeat-toggle {
   display: flex;
   align-items: center;
-  background-color: #f2f8f7;
+  background-color: var(--content-bg-color);
   padding: 10px 15px;
   border-radius: 8px;
   margin-bottom: 15px;
-  border: 1px solid #e0e0e0;
 }
 
 .repeat-toggle input[type="checkbox"] {

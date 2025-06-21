@@ -466,7 +466,7 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
                       checked={formData.repeat.endType === 'date'}
                       onChange={handleChange}
                     />
-                    <label htmlFor="endDate">날짜:</label>
+                    <label htmlFor="endDate" style={{ width: '60px' }}>날짜:</label>
                     <input
                       type="date"
                       name="repeat.endDate"
@@ -485,7 +485,7 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
                       checked={formData.repeat.endType === 'count'}
                       onChange={handleChange}
                     />
-                    <label htmlFor="endCount">다음</label>
+                    <label htmlFor="endCount" style={{ width: '80px' }}>다음</label>
                     <input
                       type="number"
                       name="repeat.endCount"
@@ -495,7 +495,7 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
                       max="999"
                       disabled={formData.repeat.endType !== 'count'}
                     />
-                    <label>회 반복</label>
+                    <label style={{ width: '110px' }}>회 반복</label>
                   </div>
                 </div>
               </div>
