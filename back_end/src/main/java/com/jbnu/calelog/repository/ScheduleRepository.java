@@ -96,4 +96,11 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
      * @return 해당 그룹의 모든 일정
      */
     List<Schedule> findByRecurringGroupId(String recurringGroupId);
+
+    /**
+     * 반복 일정 그룹의 모든 일정 삭제 (소유권 검증 포함)
+     * @param recurringGroupId 반복 그룹 ID
+     * @param userId 사용자 ID
+     */
+    void deleteByRecurringGroupIdAndUserId(String recurringGroupId, Long userId);
 }
