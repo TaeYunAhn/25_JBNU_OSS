@@ -31,7 +31,21 @@ jobs:
         docker save calelog-backend:latest | gzip > backend.tar.gz
         docker save calelog-frontend:latest | gzip > frontend.tar.gz
 
-    # 5. 파일 전송 (Docker 이미지)
+    # 5. EC2 기존 파일 정리 (파일 전송 전에 먼저 정리)
+    - name: Clean existing files on EC2
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          echo "Force cleaning all existing files..."
+          sudo rm -rf nginx/ || true
+          rm -f docker-compose.yml || true
+          rm -f *.tar.gz || true
+          echo "Cleanup completed successfully"
+
+    # 6. 파일 전송 (Docker 이미지)
     - name: Transfer Docker images to EC2
       uses: appleboy/scp-action@v0.1.7
       with:
@@ -42,7 +56,7 @@ jobs:
         target: "/home/${{ secrets.EC2_USERNAME }}"
         overwrite: true
 
-    # 6. 설정 파일 전송 (docker-compose.yml)
+    # 7. 설정 파일 전송 (docker-compose.yml)
     - name: Transfer docker-compose.yml to EC2
       uses: appleboy/scp-action@v0.1.7
       with:
@@ -53,7 +67,7 @@ jobs:
         target: "/home/${{ secrets.EC2_USERNAME }}"
         overwrite: true
 
-    # 7. nginx 설정 파일 전송
+    # 8. nginx 설정 파일 전송
     - name: Transfer nginx config to EC2
       uses: appleboy/scp-action@v0.1.7
       with:
@@ -64,7 +78,7 @@ jobs:
         target: "/home/${{ secrets.EC2_USERNAME }}"
         overwrite: true
 
-    # 6. EC2 환경 설정 및 배포
+    # 9. EC2 환경 설정 및 배포
     - name: Setup and Deploy on EC2
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -124,14 +138,8 @@ jobs:
             sudo ln -sf $DOCKER_CONFIG/cli-plugins/docker-compose /usr/local/bin/docker-compose
           fi
           
-          # 기존 파일 정리 (더 안전한 방식)
-          echo "Cleaning up existing files..."
-          sudo rm -rf nginx/ || true
-          rm -f docker-compose.yml || true
-          
-          # nginx 디렉토리 생성 및 권한 설정
-          mkdir -p nginx/
-          sudo chown -R $USER:$USER nginx/ || true
+          # 파일 정리는 이미 앞에서 완료됨
+          echo "Files already cleaned in previous step"
           
           # 기존 컨테이너 정리 (호환성 보장)
           docker compose down || docker-compose down || true
