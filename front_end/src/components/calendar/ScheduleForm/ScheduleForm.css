@@ -13,7 +13,7 @@
 .form-group label {
   font-weight: 500;
   font-size: 0.9rem;
-  color: #495057 !important;
+  color: var(--main-bg-color) !important;
 }
 
 .form-group input,
@@ -81,10 +81,10 @@
 }
 
 .btn-cancel {
-  background-color: #f8f9fa;
-  color: #212529;
-  border: 1px solid #ced4da;
-  padding: 10px 15px;
+  border: 1px solid #B8D3CE;
+  background-color: white;
+  color: var(--main-bg-color);
+  padding: 12px 30px;
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
@@ -92,7 +92,8 @@
 }
 
 .btn-cancel:hover {
-  background-color: #e9ecef;
+  filter: brightness(0.85);
+  transition: filter 0.2s ease-in-out;
 }
 
 /* 반복 설정 토글 */
