@@ -11,6 +11,7 @@ import ProjectList from '../../components/project/ProjectList';
 import ProjectModal from '../../components/project/ProjectModal';
 import useSchedule from '../../hooks/useSchedule';
 import useProject from '../../hooks/useProject';
+import useAuth from '../../hooks/useAuth';
 import exportService from '../../services/exportService';
 import './Calendar.css';
 import logoImage from '../../assets/images/logo_main.png';
@@ -19,6 +20,7 @@ function Calendar() {
   const { year, month } = useParams();
   const navigate = useNavigate();
   const calendarRef = useRef(null);
+  const { logout } = useAuth();
   
   // 커스텀 훅 사용
   const { 
@@ -284,11 +286,18 @@ function Calendar() {
     <div className="calendar-page">
       {/* 상단 네비게이션 바 */}
       <div className="top-nav-bar">
-        <div className="logo-container">
+        <div 
+          className="logo-container" 
+          onClick={() => navigate('/calendar')}
+          style={{ cursor: 'pointer' }}
+        >
           <img src={logoImage} alt="소중대 활동일지" />
         </div>
         <div className="user-info">
-          <div className="user-name">테스트 사용자님</div>
+          <div className="user-name-container">
+            <div className="user-name">테스트 사용자님</div>
+            <div className="logout-button" onClick={logout}>로그아웃</div>
+          </div>
           <div className="user-avatar">U</div>
         </div>
       </div>

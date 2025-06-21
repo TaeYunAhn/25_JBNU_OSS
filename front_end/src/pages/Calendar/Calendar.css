@@ -32,10 +32,46 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+}
+
+.user-name-container {
+  position: relative;
+  cursor: pointer;
 }
 
 .user-name {
   font-size: 14px;
+}
+
+.logout-button {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: var(--main-bg-color);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s, visibility 0.2s;
+}
+
+.logout-button:hover {
+  background-color: var(--main-button-color);
+}
+
+.user-name-container:hover .logout-button,
+.logout-button:hover {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .user-avatar {
@@ -170,8 +206,8 @@
   text-align: center;
 }
 
-.calendar-container .fc-scroller {
-}
+/* 스크롤러 스타일 필요시 이 곳에 추가 */
+
 
 /* 헤더와 캘린더 본문 사이에 간격 추가 */
 .calendar-container .fc-daygrid-body {
@@ -193,8 +229,8 @@
   border-spacing: 3px !important;
 }
 
-.calendar-container .fc-daygrid-body table {
-}
+/* 달력 테이블 스타일 필요시 이 곳에 추가 */
+
 
 .calendar-container .fc-daygrid-day-frame {
   height: 125px;
