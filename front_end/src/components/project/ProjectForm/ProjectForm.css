@@ -39,7 +39,7 @@
 
 .form-group textarea {
   min-height: 100px;
-  resize: vertical;
+  resize: initial;
 }
 
 .form-group input:focus,

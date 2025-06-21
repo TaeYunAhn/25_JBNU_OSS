@@ -71,9 +71,10 @@ const DAY_OPTIONS = [
  * @param {Array} props.projects - 프로젝트 목록
  * @param {Function} props.onSubmit - 제출 핸들러
  * @param {Function} props.onCancel - 취소 핸들러
+ * @param {Function} props.onProjectSelect - 프로젝트 선택 시 호출될 함수
  * @returns {React.ReactElement}
  */
-const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) => {
+const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel, onProjectSelect }) => {
   // 기본 상태 초기화
   const [formData, setFormData] = useState({
     title: '',
@@ -97,8 +98,7 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
   
   const [errors, setErrors] = useState({});
   const [submitDisabled, setSubmitDisabled] = useState(false);
-  const [recentActivities, setRecentActivities] = useState([]);
-  const [loadingActivities, setLoadingActivities] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   const { getProjectRecentActivities } = useSchedule();
   
   // 수정 모드이거나 선택한 날짜가 있을 때 폼 데이터 초기화
@@ -134,24 +134,6 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
     }
   }, [schedule, initialDate]);
   
-  // 프로젝트 선택 시 해당 프로젝트의 최근 활동 내역 로드
-  const loadRecentActivities = async (projectId) => {
-    if (!projectId) {
-      setRecentActivities([]);
-      return;
-    }
-    
-    setLoadingActivities(true);
-    try {
-      const activities = await getProjectRecentActivities(Number(projectId));
-      setRecentActivities(activities);
-    } catch (error) {
-      console.error('최근 활동 내역 로드 중 오류:', error);
-    } finally {
-      setLoadingActivities(false);
-    }
-  };
-  
   // 필드 값 변경 핸들러
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -170,9 +152,12 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
       }
     }
     
-    // 프로젝트 선택 시 최근 활동 내역 로드
+    // 프로젝트 선택 시 활동 모달 열기
     if (name === 'projectId' && value) {
-      loadRecentActivities(value);
+      setSelectedProjectId(value);
+      if (onProjectSelect) {
+        onProjectSelect(value);
+      }
     }
     
     // 반복 설정 필드 처리
@@ -261,8 +246,9 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
   };
   
   return (
-    <div className="schedule-form-container">
-      <form className="schedule-form" onSubmit={handleSubmit}>
+    <>
+      <div className="schedule-form-container">
+        <form className="schedule-form" onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="title">일정 제목 *</label>
           <input
@@ -512,40 +498,11 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
           {schedule ? '수정' : '생성'}
         </button>
       </div>
-      </form>
+        </form>
+      </div>
       
-      {/* 프로젝트 최근 활동 내역 표시 영역 */}
-      {formData.type === 'PROJECT' && formData.projectId && (
-        <div className="recent-activities-container">
-          <h3>프로젝트 최근 활동</h3>
-          {loadingActivities ? (
-            <div className="loading-activities">로딩 중...</div>
-          ) : recentActivities.length > 0 ? (
-            <ul className="activities-list">
-              {recentActivities.map(activity => (
-                <li key={activity.id} className="activity-item">
-                  <div className="activity-date">
-                    {activity.date ? (
-                      // 유효한 날짜 값인지 확인하고 안전하게 포맷팅
-                      (() => {
-                        try {
-                          return format(new Date(activity.date), 'yyyy-MM-dd', { locale: ko });
-                        } catch (e) {
-                          return activity.date; // 포맷팅 실패 시 원래 문자열 그대로 반환
-                        }
-                      })()
-                    ) : '날짜 없음'}
-                  </div>
-                  <div className="activity-content">{activity.content}</div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="no-activities">최근 활동이 없습니다.</div>
-          )}
-        </div>
-      )}
-    </div>
+
+    </>
   );
 };
 

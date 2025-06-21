@@ -401,28 +401,33 @@ function Calendar() {
               const endDate = new Date(selectInfo.end).setHours(0, 0, 0, 0);
               return startDate === endDate;
             }}
-            events={schedules && Array.isArray(schedules) ? schedules.map(schedule => {
-              // 프로젝트 색상 찾기
-              let backgroundColor = '#e74c3c'; // 기본 색상 (비활동 일정)
-              
-              if (schedule.type === 'PROJECT' && schedule.projectId) {
-                const project = projects.find(p => p.id === schedule.projectId);
-                if (project && project.color) {
-                  backgroundColor = project.color;
-                } else {
-                  backgroundColor = '#4a6cf7'; // 프로젝트 기본 색상
+            events={schedules && Array.isArray(schedules) ? 
+              // 일정 중복 방지를 위해 id값으로 중복 제거
+              [...new Map(schedules.map(item => [item.id, item])).values()].map(schedule => {
+                // 프로젝트 색상 찾기
+                let backgroundColor = '#e74c3c'; // 기본 색상 (비활동 일정)
+                
+                if (schedule.type === 'PROJECT' && schedule.projectId) {
+                  const project = projects.find(p => p.id === schedule.projectId);
+                  if (project && project.color) {
+                    backgroundColor = project.color;
+                  } else {
+                    backgroundColor = '#4a6cf7'; // 프로젝트 기본 색상
+                  }
                 }
-              }
-              
-              return {
-                id: schedule.id.toString(),
-                title: schedule.title,
-                start: schedule.start || `${schedule.date}T${schedule.startTime}`,
-                end: schedule.end || `${schedule.date}T${schedule.endTime}`,
-                backgroundColor: backgroundColor,
-                classNames: schedule.type === 'PROJECT' ? ['project-event'] : ['inactive-event']
-              };
-            }) : []}
+                
+                // 디버깅용 로그
+                console.log(`[일정 렌더링] ID: ${schedule.id}, 제목: ${schedule.title}`);
+                
+                return {
+                  id: schedule.id.toString(),
+                  title: schedule.title,
+                  start: schedule.start || `${schedule.date}T${schedule.startTime}`,
+                  end: schedule.end || `${schedule.date}T${schedule.endTime}`,
+                  backgroundColor: backgroundColor,
+                  classNames: schedule.type === 'PROJECT' ? ['project-event'] : ['inactive-event']
+                };
+              }) : []}
             selectable={true}
             selectMirror={true}
             dayMaxEventRows={3}

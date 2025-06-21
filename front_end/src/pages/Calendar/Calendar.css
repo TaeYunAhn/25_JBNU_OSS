@@ -308,17 +308,17 @@
 
 /* 더 보기 버튼 스타일링 (+N) */
 .fc-daygrid-more-link {
-  width: 70px;
+  width: 100%;
   background-color: #cccccc;
   color: white;
   border-radius: 4px;
   margin-top: 2px;
   padding: 2px 4px;
   font-weight: 600;
-  text-align: left;
   display: flex;
   align-items: center;
   pointer-events: none;
+  justify-content: center;
   cursor: default;
   padding-left: 4px !important;
   height: 20px;

@@ -46,20 +46,21 @@
   margin-bottom: 1.5rem;
 }
 
-.form-group {
+.login-form .form-group {
   margin-bottom: 1.5rem;
 }
 
-.form-label {
+.login-form .form-label {
   display: block;
   margin-bottom: 0.5rem;
   color: white;
   font-size: 0.9rem;
 }
 
-.form-group label {
-  color: white;
+.login-form .form-group label {
+  color: white !important;
   letter-spacing: 0.3em;
+  font-weight: 500;
 }
 
 .form-group input, .form-group textarea {

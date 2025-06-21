@@ -101,8 +101,8 @@ const ProjectList = ({
                   
                   <div className="project-hours">
                     <span>총 </span>
-                    <span style={{ fontWeight: 'bold', color: '#343a40' }}>
-                      {Math.floor(progress * project.monthlyRequiredHours / 100)}/
+                    <span style={{ fontWeight: 'bold', color: '#343a40', marginRight: '4px' }}>
+                      {Math.floor(progress * project.monthlyRequiredHours / 100)} /
                     </span>
                     <span style={{ fontWeight: 'bold', color: project.color || '#0d6efd' }}>
                       {project.monthlyRequiredHours}
