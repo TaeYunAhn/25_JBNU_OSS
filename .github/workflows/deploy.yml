@@ -38,7 +38,7 @@ jobs:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
-        source: "backend.tar.gz,frontend.tar.gz,docker-compose.yml"
+        source: "backend.tar.gz,frontend.tar.gz,docker-compose.yml,nginx/"
         target: "/home/${{ secrets.EC2_USERNAME }}"
 
     # 6. EC2 환경 설정 및 배포
