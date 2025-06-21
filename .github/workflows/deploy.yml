@@ -31,14 +31,36 @@ jobs:
         docker save calelog-backend:latest | gzip > backend.tar.gz
         docker save calelog-frontend:latest | gzip > frontend.tar.gz
 
-    # 5. 파일 전송
-    - name: Transfer files to EC2
+    # 5. 파일 전송 (Docker 이미지)
+    - name: Transfer Docker images to EC2
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
-        source: "backend.tar.gz,frontend.tar.gz,docker-compose.yml,nginx/"
+        source: "backend.tar.gz,frontend.tar.gz"
+        target: "/home/${{ secrets.EC2_USERNAME }}"
+        overwrite: true
+
+    # 6. 설정 파일 전송 (docker-compose.yml)
+    - name: Transfer docker-compose.yml to EC2
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: "docker-compose.yml"
+        target: "/home/${{ secrets.EC2_USERNAME }}"
+        overwrite: true
+
+    # 7. nginx 설정 파일 전송
+    - name: Transfer nginx config to EC2
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: "nginx/nginx.conf"
         target: "/home/${{ secrets.EC2_USERNAME }}"
         overwrite: true
 
@@ -102,9 +124,14 @@ jobs:
             sudo ln -sf $DOCKER_CONFIG/cli-plugins/docker-compose /usr/local/bin/docker-compose
           fi
           
-          # 기존 파일 정리
-          rm -rf nginx/ || true
+          # 기존 파일 정리 (더 안전한 방식)
+          echo "Cleaning up existing files..."
+          sudo rm -rf nginx/ || true
           rm -f docker-compose.yml || true
+          
+          # nginx 디렉토리 생성 및 권한 설정
+          mkdir -p nginx/
+          sudo chown -R $USER:$USER nginx/ || true
           
           # 기존 컨테이너 정리 (호환성 보장)
           docker compose down || docker-compose down || true
