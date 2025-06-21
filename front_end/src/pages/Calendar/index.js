@@ -346,22 +346,28 @@ function Calendar() {
               initialDate={initialDate}
               headerToolbar={false} // 커스텀 툴바 사용
               eventDidMount={(info) => {
-                // 이벤트가 DOM에 마운트될 때 직접 스타일 적용
                 const { event } = info;
                 const type = event.classNames.includes('inactive-event') ? 'INACTIVE' : 'PROJECT';
                 
-                // 비활동 일정은 회색, 프로젝트 일정은 해당 색상으로 설정
+                // 색상 설정
+                let eventColor = '#CCCCCC';
                 if (type === 'INACTIVE') {
-                  info.el.style.backgroundColor = '#CCCCCC';
-                  info.el.style.borderColor = '#CCCCCC';
+                  eventColor = '#CCCCCC';
                 } else {
-                  // 프로젝트 일정은 지정된 색상 그대로 유지
-                  info.el.style.backgroundColor = event.backgroundColor;
-                  info.el.style.borderColor = event.backgroundColor;
+                  eventColor = event.backgroundColor;
                 }
                 
-                // 일정 텍스트 색상
+                // 이벤트 요소에 색상 적용
+                info.el.style.backgroundColor = eventColor;
+                info.el.style.borderColor = eventColor;
                 info.el.style.color = 'white';
+                
+                // 시간 텍스트에도 색상 적용 (주간/일간 뷰)
+                const timeEl = info.el.querySelector('.fc-event-time');
+                if (timeEl) {
+                  timeEl.style.color = 'white';
+                  timeEl.style.fontWeight = '500';
+                }
                 
                 // 월별 뷰에서만 시간 정보 제거
                 if (info.view.type === 'dayGridMonth') {
@@ -433,6 +439,13 @@ function Calendar() {
             slotMaxTime="24:00:00"
             height="auto"
             selectOverlap={true} // 기존 이벤트와 겹쳐도 선택 가능
+            dayCellContent={(args) => {
+              // 월별 뷰에서만 적용
+              if (args.view.type === 'dayGridMonth') {
+                return { html: `<span class="fc-daygrid-day-number">${args.dayNumberText.replace('일', '')}</span>` };
+              }
+              return { html: args.dayNumberText };
+            }}
           />
         </div>
       </div>

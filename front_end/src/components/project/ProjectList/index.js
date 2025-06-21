@@ -101,14 +101,23 @@ const ProjectList = ({
                   
                   <div className="project-hours">
                     <span>총 </span>
-                    <strong>{Math.floor(progress * project.monthlyRequiredHours / 100)}/{project.monthlyRequiredHours} 시간</strong>
+                    <span style={{ fontWeight: 'bold', color: '#343a40' }}>
+                      {Math.floor(progress * project.monthlyRequiredHours / 100)}/
+                    </span>
+                    <span style={{ fontWeight: 'bold', color: project.color || '#0d6efd' }}>
+                      {project.monthlyRequiredHours}
+                    </span>
+                    <span style={{ fontWeight: 'bold', color: '#343a40' }}> 시간</span>
                   </div>
                   
                   <div className="project-progress">
                     <div className="progress-bar">
                       <div 
                         className="progress-fill" 
-                        style={{ width: `${progress}%` }}
+                        style={{ 
+                          width: `${progress}%`,
+                          backgroundColor: project.color || '#4a6cf7' // 지정된 프로젝트 색상 사용, 없으면 기본색
+                        }}
                       />
                     </div>
                     <span className="progress-text">{progress}%</span>

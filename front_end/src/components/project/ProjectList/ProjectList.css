@@ -57,7 +57,7 @@
 
 .project-item {
   border: 1px solid #dee2e6;
-  background-color: var(--content-bg-color);
+  background-color: white;
   border-radius: 5px;
   padding: 10px 15px;
   transition: all 0.2s;

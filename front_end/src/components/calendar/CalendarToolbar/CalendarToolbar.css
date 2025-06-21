@@ -67,32 +67,30 @@
 
 .view-selector {
   display: flex;
-  border: 1px solid #dee2e6;
   border-radius: 4px;
   overflow: hidden;
+  gap: 3px;
 }
 
 .view-btn {
-  background-color: white;
+  background-color: #B8D3CE;
+  color: white;
   border: none;
-  padding: 6px 12px;
-  font-size: 0.9rem;
+  padding: 4px 12px;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s;
-  color: #6c757d;
-}
-
-.view-btn:not(:last-child) {
-  border-right: 1px solid #dee2e6;
+  border-radius: 5px;
+  border: 1px solid #dee2e6;
 }
 
 .view-btn.active {
-  background-color: #0d6efd;
-  color: white;
+  background-color: var(--main-button-color);
 }
 
 .view-btn:not(.active):hover {
-  background-color: #f8f9fa;
+  filter: brightness(0.85);
+  transition: filter 0.2s ease-in-out;
 }
 
 .btn-add {
@@ -122,7 +120,8 @@
 }
 
 .btn-export:hover {
-  background-color: #157347;
+  filter: brightness(0.85);
+  transition: filter 0.2s ease-in-out;
 }
 
 /* 반응형 디자인 */

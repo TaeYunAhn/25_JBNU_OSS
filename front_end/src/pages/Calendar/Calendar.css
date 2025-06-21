@@ -207,6 +207,7 @@
 .calendar-container .fc-daygrid-body,
 .calendar-container .fc-daygrid-day-top {
   pointer-events: auto !important;
+  flex-direction: row;
 }
 
 /* 셀 내부 요소들에 클릭 이벤트가 동작하도록 설정 */
@@ -233,6 +234,7 @@
 
 .calendar-container .fc-daygrid-day-top a {
   cursor: pointer;
+  padding: 0 5px;
 }
 
 .calendar-container .fc .fc-daygrid-day.fc-day-today {
@@ -291,8 +293,67 @@
 
 .fc .fc-daygrid-body-natural .fc-daygrid-day-events {
   margin-bottom: 0;
+  margin-top: -5px;
 }
 
 .fc .fc-daygrid-event-harness {
   height: 30px;
+}
+
+/* 빈 'more' 버튼 영역 숨기기 */
+.fc-daygrid-day-bottom:empty {
+  display: none;
+}
+
+/* 주별/일별 뷰 테두리 추가 */
+.fc .fc-timegrid-col.fc-day {
+  border: 1px solid #ddd;
+}
+
+/* 주별/일별 뷰의 시간 슬롯 테두리 */
+.fc .fc-timegrid-slot {
+  border-bottom: 1px solid #ddd !important;
+}
+
+/* 전체 시간 그리드 테두리 강화 */
+.fc .fc-timegrid-body {
+  border: 1px solid #ccc !important;
+}
+
+/* 지겨진 시간대 배경색 추가 */
+.fc .fc-timegrid-slot:nth-child(even) {
+  background-color: rgba(248, 249, 250, 0.5) !important;
+}
+
+/* 시간대 구분선 - 30분 단위 */
+.fc .fc-timegrid-slot.fc-timegrid-slot-lane.fc-timegrid-slot-minor {
+  border-bottom: 1px dotted #aaa !important;
+}
+
+/* 시간대 구분선 - 정시 (12시, 1시 등) */
+.fc .fc-timegrid-slot.fc-timegrid-slot-lane:not(.fc-timegrid-slot-minor) {
+  border-bottom: 1px solid #ccc !important;
+}
+
+/* 시간 레이블 스타일 강화 */
+.fc .fc-timegrid-axis-cushion {
+  font-weight: 500;
+  color: #344B47;
+}
+
+/* 주별/일별 뷰의 실제 콘텐츠 셀 테두리 */
+.fc .fc-timegrid-slot-lane {
+  border-bottom: 1px solid #ccc !important;
+}
+
+/* 주별/일별 뷰의 헤더 셀 테두리 */
+.fc .fc-timegrid-axis,
+.fc .fc-timegrid-col-header {
+  border: 1px solid #ddd;
+}
+
+/* 주별/일별 뷰의 헤더 텍스트 스타일 */
+.fc .fc-timegrid-col-header-cushion {
+  padding: 8px;
+  font-weight: 500;
 }
