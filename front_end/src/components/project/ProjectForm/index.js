@@ -4,16 +4,16 @@ import './ProjectForm.css';
 
 // 프로젝트 색상 옵션
 const PROJECT_COLORS = [
-  { id: 'blue', label: '파란색', value: '#4a6cf7' },
-  { id: 'green', label: '초록색', value: '#00AA94' },
-  { id: 'red', label: '빨간색', value: '#e74c3c' },
-  { id: 'purple', label: '보라색', value: '#9b59b6' },
-  { id: 'orange', label: '주황색', value: '#e67e22' },
-  { id: 'teal', label: '청록색', value: '#1abc9c' },
-  { id: 'yellow', label: '노란색', value: '#f1c40f' },
-  { id: 'pink', label: '분홍색', value: '#e84393' },
-  { id: 'gray', label: '회색', value: '#95a5a6' },
-  { id: 'black', label: '검정색', value: '#34495e' }
+  { id: 'red', label: '빨간색', value: '#E15B5B' },
+  { id: 'blue', label: '파란색', value: '#5B8DEE' },
+  { id: 'green', label: '초록색', value: '#4DA08C' },
+  { id: 'orange', label: '주황색', value: '#F4A261' },
+  { id: 'yellow', label: '노란색', value: '#F6D365' },
+  { id: 'pink', label: '분홍색', value: '#EC9ABE' },
+  { id: 'purple', label: '보라색', value: '#A29BFE' },
+  { id: 'brown', label: '갈색', value: '#A9746E' },
+  { id: 'gray', label: '회색', value: '#A8B0AD' },
+  { id: 'black', label: '검정색', value: '#2F3A38' }
 ];
 
 /**

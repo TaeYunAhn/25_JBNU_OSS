@@ -8,7 +8,7 @@ const projects = [
     monthlyRequiredHours: 40,
     startDate: '2025-01-01', 
     endDate: '2025-12-31',
-    color: '#4a6cf7' // 파란색
+    color: '#F4A261' 
   },
   { 
     id: 2, 
@@ -16,7 +16,7 @@ const projects = [
     monthlyRequiredHours: 20, 
     startDate: '2025-01-01', 
     endDate: '2025-12-31',
-    color: '#e74c3c' // 빨간색
+    color: '#F6D365'
   },
   { 
     id: 3, 
@@ -24,7 +24,7 @@ const projects = [
     monthlyRequiredHours: 80, 
     startDate: '2025-06-01', 
     endDate: '2025-08-31',
-    color: '#00AA94' // 초록색
+    color: '#EC9ABE' 
   },
   { 
     id: 4, 
@@ -32,7 +32,7 @@ const projects = [
     monthlyRequiredHours: 30, 
     startDate: '2025-03-01', 
     endDate: '2025-12-31',
-    color: '#9b59b6' // 보라색
+    color: '#A29BFE'  
   }
 ];
 

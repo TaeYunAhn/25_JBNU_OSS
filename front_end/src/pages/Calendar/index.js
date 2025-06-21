@@ -13,6 +13,7 @@ import useSchedule from '../../hooks/useSchedule';
 import useProject from '../../hooks/useProject';
 import exportService from '../../services/exportService';
 import './Calendar.css';
+import logoImage from '../../assets/images/logo_main.png';
 
 function Calendar() {
   const { year, month } = useParams();
@@ -281,50 +282,114 @@ function Calendar() {
   // 랜더링
   return (
     <div className="calendar-page">
-      <div className="calendar-sidebar">
-        <h2 className="page-title">프로젝트 관리</h2>
-        
-        <ProjectList 
-          projects={projects}
-          onProjectClick={() => {}}
-          onAddProject={handleAddProject}
-          onEditProject={handleProjectEdit}
-        />
-        
-        <div className="export-section">
-          <h3>월별 활동내역</h3>
-          <button 
-            className="btn-export" 
-            onClick={handleExport}
-            disabled={projectLoading || scheduleLoading}
-          >
-            활동일지 내보내기
-          </button>
+      {/* 상단 네비게이션 바 */}
+      <div className="top-nav-bar">
+        <div className="logo-container">
+          <img src={logoImage} alt="소중대 활동일지" />
+        </div>
+        <div className="user-info">
+          <div className="user-name">테스트 사용자님</div>
+          <div className="user-avatar">U</div>
         </div>
       </div>
       
-      <div className="calendar-main">
-        {/* 캘린더 툴바 */}
-        <CalendarToolbar
-          currentDate={currentDate}
-          onPrev={handlePrevMonth}
-          onNext={handleNextMonth}
-          onToday={handleToday}
-          view={calendarView === 'dayGridMonth' ? 'month' : 
-                calendarView === 'timeGridWeek' ? 'week' : 'day'}
-          onViewChange={handleViewChange}
-          onAddSchedule={handleAddSchedule}
-          onExport={handleExport}
-        />
+      {/* 캘린더 콘텐츠 영역 */}
+      <div className="calendar-content">
+        <div className="calendar-sidebar">
+          <div className="sidebar-action-buttons">
+            <button className="btn-add-project" onClick={handleAddProject}>
+              프로젝트 추가 <i className="fas fa-plus"></i>
+            </button>
+            <button className="btn-add-schedule" onClick={handleAddSchedule}>
+              일정 추가 <i className="fas fa-plus"></i>
+            </button>
+          </div>
+          
+          <ProjectList 
+            projects={projects}
+            onProjectClick={() => {}}
+            onAddProject={handleAddProject}
+            onEditProject={handleProjectEdit}
+          />
+          
+          <div className="export-section">
+            <button 
+              className="btn-export" 
+              onClick={handleExport}
+              disabled={projectLoading || scheduleLoading}
+            >
+              활동일지 내보내기
+            </button>
+          </div>
+        </div>
         
-        {/* 캘린더 */}
-        <div className="calendar-container">
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView={calendarView}
-            initialDate={initialDate}
-            headerToolbar={false} // 커스텀 툴바 사용
+        <div className="calendar-main">
+          {/* 캘린더 툴바 */}
+          <CalendarToolbar
+            currentDate={currentDate}
+            onPrev={handlePrevMonth}
+            onNext={handleNextMonth}
+            onToday={handleToday}
+            view={calendarView === 'dayGridMonth' ? 'month' : 
+                  calendarView === 'timeGridWeek' ? 'week' : 'day'}
+            onViewChange={handleViewChange}
+            onAddSchedule={handleAddSchedule}
+            onExport={handleExport}
+          />
+          
+          {/* 캘린더 */}
+          <div className="calendar-container">
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView={calendarView}
+              initialDate={initialDate}
+              headerToolbar={false} // 커스텀 툴바 사용
+              eventDidMount={(info) => {
+                const { event } = info;
+                const type = event.classNames.includes('inactive-event') ? 'INACTIVE' : 'PROJECT';
+                
+                // 색상 설정
+                let eventColor = '#CCCCCC';
+                if (type === 'INACTIVE') {
+                  eventColor = '#CCCCCC';
+                } else {
+                  eventColor = event.backgroundColor;
+                }
+                
+                // 이벤트 요소에 색상 적용
+                info.el.style.backgroundColor = eventColor;
+                info.el.style.borderColor = eventColor;
+                info.el.style.color = 'white';
+                
+                // 시간 텍스트에도 색상 적용 (주간/일간 뷰)
+                const timeEl = info.el.querySelector('.fc-event-time');
+                if (timeEl) {
+                  timeEl.style.color = 'white';
+                  timeEl.style.fontWeight = '500';
+                }
+                
+                // 월별 뷰에서만 시간 정보 제거
+                if (info.view.type === 'dayGridMonth') {
+                  const titleEl = info.el.querySelector('.fc-event-title');
+                  if (titleEl) {
+                    // 시간 형식 패턴 제거
+                    const title = titleEl.textContent;
+                    
+                    // 여러 가지 시간 형식 패턴 처리
+                    let cleanTitle = title;
+                    
+                    // "(오전/오후) N시" 패턴 제거
+                    cleanTitle = cleanTitle.replace(/^(\s*(\uC624\uC804|\uC624\uD6C4)\s*\d{1,2}\s*\uC2DC(\s*\d{1,2}\s*\uBD84)?\s*)/, '');
+                    
+                    // "N:NN" 패턴 제거
+                    cleanTitle = cleanTitle.replace(/^(\s*\d{1,2}\:\d{2}\s*)/, '');
+                    
+                    // 결과 적용
+                    titleEl.textContent = cleanTitle;
+                  }
+                }
+              }}
             selectConstraint={{ // 하루를 넘어가는 드래그 선택 제한
               startTime: '00:00',
               endTime: '24:00',
@@ -336,7 +401,7 @@ function Calendar() {
               const endDate = new Date(selectInfo.end).setHours(0, 0, 0, 0);
               return startDate === endDate;
             }}
-            events={schedules.map(schedule => {
+            events={schedules && Array.isArray(schedules) ? schedules.map(schedule => {
               // 프로젝트 색상 찾기
               let backgroundColor = '#e74c3c'; // 기본 색상 (비활동 일정)
               
@@ -357,12 +422,16 @@ function Calendar() {
                 backgroundColor: backgroundColor,
                 classNames: schedule.type === 'PROJECT' ? ['project-event'] : ['inactive-event']
               };
-            })}
+            }) : []}
             selectable={true}
             selectMirror={true}
             dayMaxEvents={true}
             eventClick={handleEventClick}
             select={handleDateSelect}
+            dateClick={(info) => handleDateSelect({
+              start: info.date,
+              end: new Date(info.date.getTime() + 3600000) // 1시간 후
+            })}
             datesSet={handleMonthChange}
             locale="ko"
             allDaySlot={false}
@@ -370,8 +439,17 @@ function Calendar() {
             slotMaxTime="24:00:00"
             height="auto"
             selectOverlap={true} // 기존 이벤트와 겹쳐도 선택 가능
+            dayCellContent={(args) => {
+              // 월별 뷰에서만 적용
+              if (args.view.type === 'dayGridMonth') {
+                return { html: `<span class="fc-daygrid-day-number">${args.dayNumberText.replace('일', '')}</span>` };
+              }
+              return { html: args.dayNumberText };
+            }}
           />
         </div>
+      </div>
+      
       </div>
       
       {/* 일정 모달 */}

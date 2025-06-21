@@ -110,11 +110,12 @@
   color: #495057;
 }
 
-.modal-form-group input,
-.modal-form-group select,
-.modal-form-group textarea {
+.modal-content .form-group input,
+.modal-content .form-group select,
+.modal-content .form-group textarea {
+  background-color: var(--content-bg-color);
   padding: 10px;
-  border: 1px solid #ced4da;
+  border: none;
   border-radius: 4px;
   font-size: 1rem;
 }

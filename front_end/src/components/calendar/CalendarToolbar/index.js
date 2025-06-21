@@ -94,14 +94,6 @@ const CalendarToolbar = ({
             일
           </button>
         </div>
-        
-        <button className="btn-add" onClick={onAddSchedule}>
-          + 일정추가
-        </button>
-        
-        <button className="btn-export" onClick={onExport}>
-          내보내기
-        </button>
       </div>
     </div>
   );

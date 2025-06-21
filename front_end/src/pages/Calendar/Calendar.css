@@ -1,21 +1,106 @@
 .calendar-page {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background-color: var(--light-gray);
 }
 
+/* 상단 네비게이션 바 스타일 */
+.top-nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: linear-gradient(to right, var(--main-bg-color), var(--main-bg-color-light));
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  height: 60px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-container img {
+  height: 70px;
+  width: auto;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  font-size: 14px;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #00AA94;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* 캘린더 콘텐츠 영역 스타일 */
+.calendar-content {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 60px);
+}
+
 .calendar-sidebar {
-  width: 300px;
-  background-color: white;
+  width: 280px;
+  background: linear-gradient(to bottom, var(--main-bg-color), var(--main-bg-color-light));
+  overflow-y: auto;
+}
+
+.calendar-sidebar .page-title {
+  color: white;
+  margin-bottom: 20px;
+}
+
+.sidebar-action-buttons {
+  border-top: 1px solid white;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   padding: 20px;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-add-project, .btn-add-schedule {
+  background: none;
+  color: white;
+  border-radius: 4px;
+  padding: 8px 4px;
+  font-size: 20px;
+  font-weight: 500;
+  flex: 1;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.btn-add-project:hover, .btn-add-schedule:hover {
+  background-color: var(--second-main-color);
 }
 
 .calendar-main {
   flex: 1;
-  padding: 20px;
+  background-color: white;
+  padding: 40px 80px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .calendar-header {
@@ -39,15 +124,13 @@
 .calendar-container {
   background-color: white;
   border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  box-shadow: none;
   flex: 1;
 }
 
 .export-section {
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid var(--medium-gray);
+  padding: 20px;
 }
 
 .export-section h3 {
@@ -56,6 +139,104 @@
 }
 
 /* FullCalendar 커스텀 스타일 */
+/* 모든 테두리 제거 및 기본 스타일 */
+.calendar-container .fc-theme-standard .fc-scrollgrid,
+.calendar-container .fc-theme-standard td,
+.calendar-container .fc-theme-standard th {
+  border: none;
+}
+
+.calendar-container .fc-scrollgrid {
+  border: none !important;
+}
+
+/* 요일 표시 헤더의 배경색 변경 */
+.calendar-container thead {
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  background-color: #6E9F97;
+  overflow: hidden;
+}
+
+.calendar-container .fc-col-header-cell {
+  margin: 0 2px;
+}
+
+.calendar-container .fc-col-header-cell-cushion {
+  color: white;
+  font-weight: 500;
+  padding: 8px;
+  display: block;
+  text-align: center;
+}
+
+.calendar-container .fc-scroller {
+}
+
+/* 헤더와 캘린더 본문 사이에 간격 추가 */
+.calendar-container .fc-daygrid-body {
+  margin-top: 15px;
+}
+
+/* 날짜 셀 스타일 - 테두리만 적용 */
+.calendar-container .fc-daygrid-day,
+.calendar-container .fc-theme-standard td.fc-daygrid-day {
+  border-radius: 6px;
+  border: 1px solid #dee2e6 !important;
+  cursor: pointer;
+  position: relative;
+}
+
+/* 스크롤그리드 셀 간격 */
+.calendar-container .fc-scrollgrid-sync-table {
+  border-collapse: separate !important;
+  border-spacing: 3px !important;
+}
+
+.calendar-container .fc-daygrid-body table {
+}
+
+.calendar-container .fc-daygrid-day-frame {
+  padding: 4px;
+  z-index: 1;
+  pointer-events: auto !important;
+}
+
+/* 날짜 클릭 이벤트가 잘 작동하도록 추가 */
+.calendar-container .fc-daygrid-day-events,
+.calendar-container .fc-daygrid-body,
+.calendar-container .fc-daygrid-day-top {
+  pointer-events: auto !important;
+  flex-direction: row;
+}
+
+/* 셀 내부 요소들에 클릭 이벤트가 동작하도록 설정 */
+
+/* 월별 뷰에서 일정이 점이 아닌 배경색 블록으로 표시되도록 변경 */
+.fc-daygrid-dot-event {
+  display: block !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+}
+
+/* 월별 뷰에서 작은 동그라미 점 숨기기 */
+.fc-daygrid-event-dot {
+  display: none !important;
+}
+
+/* 일정 텍스트 스타일 */
+.fc-daygrid-dot-event .fc-event-title {
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.calendar-container .fc-daygrid-day-top a {
+  cursor: pointer;
+  padding: 0 5px;
+}
+
 .calendar-container .fc .fc-daygrid-day.fc-day-today {
   background-color: rgba(74, 108, 247, 0.1);
 }
@@ -78,11 +259,101 @@
 
 /* 일정 유형별 색상 */
 .project-event {
-  background-color: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
+  /* 프로젝트의 색상은 JavaScript에서 지정함 */
+  border: none !important;
 }
 
 .inactive-event {
-  background-color: var(--danger-color) !important;
-  border-color: var(--danger-color) !important;
+  background-color: #CCCCCC !important;
+  border-color: #CCCCCC !important;
+}
+
+/* 월별 뷰에서 동그라미 점 숨기기 */
+.fc-daygrid-event-dot {
+  display: none !important;
+}
+
+/* 월별 뷰에서 일정이 블록으로 표시되도록 설정 */
+.fc-daygrid-dot-event {
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  display: block !important;
+}
+
+/* 월별 달력에서 일정 텍스트 색상 */
+.fc-daygrid-dot-event .fc-event-title {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+/* 월별 뷰에서 시간 숨기기 */
+.fc-daygrid-event .fc-event-time {
+  display: none !important;
+}
+
+.fc .fc-daygrid-body-natural .fc-daygrid-day-events {
+  margin-bottom: 0;
+  margin-top: -5px;
+}
+
+.fc .fc-daygrid-event-harness {
+  height: 30px;
+}
+
+/* 빈 'more' 버튼 영역 숨기기 */
+.fc-daygrid-day-bottom:empty {
+  display: none;
+}
+
+/* 주별/일별 뷰 테두리 추가 */
+.fc .fc-timegrid-col.fc-day {
+  border: 1px solid #ddd;
+}
+
+/* 주별/일별 뷰의 시간 슬롯 테두리 */
+.fc .fc-timegrid-slot {
+  border-bottom: 1px solid #ddd !important;
+}
+
+/* 전체 시간 그리드 테두리 강화 */
+.fc .fc-timegrid-body {
+  border: 1px solid #ccc !important;
+}
+
+/* 지겨진 시간대 배경색 추가 */
+.fc .fc-timegrid-slot:nth-child(even) {
+  background-color: rgba(248, 249, 250, 0.5) !important;
+}
+
+/* 시간대 구분선 - 30분 단위 */
+.fc .fc-timegrid-slot.fc-timegrid-slot-lane.fc-timegrid-slot-minor {
+  border-bottom: 1px dotted #aaa !important;
+}
+
+/* 시간대 구분선 - 정시 (12시, 1시 등) */
+.fc .fc-timegrid-slot.fc-timegrid-slot-lane:not(.fc-timegrid-slot-minor) {
+  border-bottom: 1px solid #ccc !important;
+}
+
+/* 시간 레이블 스타일 강화 */
+.fc .fc-timegrid-axis-cushion {
+  font-weight: 500;
+  color: #344B47;
+}
+
+/* 주별/일별 뷰의 실제 콘텐츠 셀 테두리 */
+.fc .fc-timegrid-slot-lane {
+  border-bottom: 1px solid #ccc !important;
+}
+
+/* 주별/일별 뷰의 헤더 셀 테두리 */
+.fc .fc-timegrid-axis,
+.fc .fc-timegrid-col-header {
+  border: 1px solid #ddd;
+}
+
+/* 주별/일별 뷰의 헤더 텍스트 스타일 */
+.fc .fc-timegrid-col-header-cushion {
+  padding: 8px;
+  font-weight: 500;
 }
