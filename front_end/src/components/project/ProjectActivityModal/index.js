@@ -4,14 +4,7 @@ import { ko } from 'date-fns/locale';
 import useSchedule from '../../../hooks/useSchedule';
 import './ProjectActivityModal.css';
 
-// 테스트용 더미 활동 데이터
-const DUMMY_ACTIVITIES = [
-  { id: 1, date: '2025-06-15', content: '프로젝트 계획 수립' },
-  { id: 2, date: '2025-06-17', content: '기능 구현 - 로그인' },
-  { id: 3, date: '2025-06-19', content: '기능 구현 - 캘린더' },
-  { id: 4, date: '2025-06-21', content: '테스트 및 디버깅' },
-  { id: 5, date: '2025-06-22', content: '최종 검토 및 발표 준비' },
-];
+
 
 /**
  * 프로젝트 최근 활동을 보여주는 모달 컴포넌트
@@ -68,14 +61,7 @@ const ProjectActivityModal = ({ isOpen, onClose, projectId, projectName }) => {
   // ESC 키 이벤트 비활성화 - 다른 모달과 충돌 막기
   // 사용자가 직접 X 버튼을 클릭하도록 유도
   
-  // 항상 테스트 데이터로 채우기
-  useEffect(() => {
-    if (isOpen && (!recentActivities || recentActivities.length === 0)) {
-      console.log('테스트 데이터 사용');
-      setRecentActivities(DUMMY_ACTIVITIES);
-      setLoading(false);
-    }
-  }, [isOpen, recentActivities]);
+
   
   // 디버깅 로그 추가
   console.log('프로젝트 활동 모달 상태:', { isOpen, projectId, projectName });

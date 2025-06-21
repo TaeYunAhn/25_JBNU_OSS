@@ -1,9 +1,14 @@
 import api from './api';
-import generateMockSchedules from '../mocks/data/schedules';
 import { addDays, addWeeks, addMonths, format, parse, getDay } from 'date-fns';
 
-// 실제 백엔드 API 사용으로 전환
+// 목업 데이터 제거 - 실제 백엔드 API만 사용
 const USE_MOCK_DATA = false;
+
+// 목업용 빈 함수 - 참조 오류 방지
+const generateMockSchedules = () => { 
+  console.warn('목업 데이터가 삭제되었습니다. 실제 API를 사용해주세요.'); 
+  return []; 
+};
 
 // 반복 일정 생성을 위한 헬퍼 함수
 const generateRecurringSchedules = (baseSchedule, count = 10) => {

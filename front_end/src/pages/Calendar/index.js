@@ -445,6 +445,14 @@ function Calendar() {
             moreLinkContent={(args) => {
               return `+${args.num}`;
             }}
+            eventContent={(arg) => {
+              // 이벤트 내용 커스터마이징
+              const title = document.createElement('div');
+              title.className = 'fc-event-title';
+              title.innerHTML = arg.event.title;
+              
+              return { domNodes: [title] };
+            }}
             eventClick={handleEventClick}
             select={handleDateSelect}
             dateClick={(info) => handleDateSelect({

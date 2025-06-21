@@ -1,8 +1,10 @@
 import api from './api';
-import projects from '../mocks/data/projects';
 
-// 실제 백엔드 API 사용으로 전환
+// 목업 데이터 제거 - 실제 백엔드 API만 사용
 const USE_MOCK_DATA = false;
+
+// 목업용 빈 데이터 - 참조 오류 방지
+const projects = [];
 
 const projectService = {
   /**
