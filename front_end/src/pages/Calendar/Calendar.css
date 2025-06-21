@@ -197,7 +197,8 @@
 }
 
 .calendar-container .fc-daygrid-day-frame {
-  padding: 4px;
+  height: 125px;
+  padding: 0 4px;
   z-index: 1;
   pointer-events: auto !important;
 }
@@ -303,6 +304,24 @@
 /* 빈 'more' 버튼 영역 숨기기 */
 .fc-daygrid-day-bottom:empty {
   display: none;
+}
+
+/* 더 보기 버튼 스타일링 (+N) */
+.fc-daygrid-more-link {
+  width: 70px;
+  background-color: #cccccc;
+  color: white;
+  border-radius: 4px;
+  margin-top: 2px;
+  padding: 2px 4px;
+  font-weight: 600;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  cursor: default;
+  padding-left: 4px !important;
+  height: 20px;
 }
 
 /* 주별/일별 뷰 테두리 추가 */

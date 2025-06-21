@@ -425,7 +425,10 @@ function Calendar() {
             }) : []}
             selectable={true}
             selectMirror={true}
-            dayMaxEvents={true}
+            dayMaxEventRows={3}
+            moreLinkContent={(args) => {
+              return `+${args.num}`;
+            }}
             eventClick={handleEventClick}
             select={handleDateSelect}
             dateClick={(info) => handleDateSelect({
