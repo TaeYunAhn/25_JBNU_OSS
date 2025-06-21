@@ -40,6 +40,7 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         source: "backend.tar.gz,frontend.tar.gz,docker-compose.yml,nginx/"
         target: "/home/${{ secrets.EC2_USERNAME }}"
+        overwrite: true
 
     # 6. EC2 환경 설정 및 배포
     - name: Setup and Deploy on EC2
@@ -100,6 +101,10 @@ jobs:
             # 시스템 전체 설치도 병행 (호환성)
             sudo ln -sf $DOCKER_CONFIG/cli-plugins/docker-compose /usr/local/bin/docker-compose
           fi
+          
+          # 기존 파일 정리
+          rm -rf nginx/ || true
+          rm -f docker-compose.yml || true
           
           # 기존 컨테이너 정리 (호환성 보장)
           docker compose down || docker-compose down || true
