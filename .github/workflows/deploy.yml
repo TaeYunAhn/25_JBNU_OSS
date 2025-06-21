@@ -110,20 +110,14 @@ jobs:
           # Docker 권한 확인
           echo "Docker permissions configured for development team access"
           
-          # Self-signed SSL 인증서 생성 (TWA용 HTTPS)
-          echo "Creating self-signed SSL certificate for HTTPS..."
-          sudo mkdir -p /etc/ssl/certs /etc/ssl/private
-          sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-            -keyout /etc/ssl/private/callog.key \
-            -out /etc/ssl/certs/callog.crt \
-            -subj "/C=KR/ST=Jeonbuk/L=Jeonju/O=JBNU/OU=ComputerEngineering/CN=callog.o-r.kr" \
-            -addext "subjectAltName=DNS:callog.o-r.kr,DNS:localhost,IP:127.0.0.1"
-          
-          # SSL 인증서 권한 설정
-          sudo chmod 600 /etc/ssl/private/callog.key
-          sudo chmod 644 /etc/ssl/certs/callog.crt
-          
-          echo "SSL certificate created successfully"
+          # Let's Encrypt SSL 인증서 확인
+          echo "Checking Let's Encrypt SSL certificate..."
+          if [ -f "/etc/letsencrypt/live/callog.o-r.kr/fullchain.pem" ]; then
+            echo "Let's Encrypt certificate found - using real SSL certificate"
+          else
+            echo "Warning: Let's Encrypt certificate not found"
+            echo "Please ensure certbot has been run and certificates are available"
+          fi
           
           # Docker Compose 플러그인 설치 확인 및 설치 (V2)
           if ! docker compose version &> /dev/null; then

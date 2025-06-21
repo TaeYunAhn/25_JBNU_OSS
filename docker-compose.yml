@@ -57,8 +57,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - /etc/ssl/certs/callog.crt:/etc/ssl/certs/callog.crt:ro
-      - /etc/ssl/private/callog.key:/etc/ssl/private/callog.key:ro
+      - /etc/letsencrypt/live/callog.o-r.kr/fullchain.pem:/etc/letsencrypt/live/callog.o-r.kr/fullchain.pem:ro
+      - /etc/letsencrypt/live/callog.o-r.kr/privkey.pem:/etc/letsencrypt/live/callog.o-r.kr/privkey.pem:ro
     depends_on:
       - frontend
       - backend
