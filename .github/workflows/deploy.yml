@@ -49,8 +49,8 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # 현재 IP 주소 가져오기
-          export EC2_PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+          # 현재 IP 주소 가져오기 (재시도 로직 추가)
+          export EC2_PUBLIC_IP=$(curl -s --max-time 10 http://169.254.169.254/latest/meta-data/public-ipv4 || echo "3.13.66.177")
           echo "Current EC2 IP: $EC2_PUBLIC_IP"
           
           # Docker 설치 확인 및 설치
@@ -114,11 +114,17 @@ jobs:
           # 도메인 + IP 기반 CORS 설정 생성
           CORS_ORIGINS="http://callog.o-r.kr,https://callog.o-r.kr,http://$EC2_PUBLIC_IP:3000,http://$EC2_PUBLIC_IP:80,http://$EC2_PUBLIC_IP,http://localhost:3000,http://localhost:80"
           
-          # 환경변수 직접 전달로 서비스 시작
-          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
-          CALELOG_JWT_SECRET=${{ secrets.CALELOG_JWT_SECRET }} \
-          CALELOG_PROFILE=prod \
-          CALELOG_CORS_ORIGINS="$CORS_ORIGINS" \
+          # .env 파일 생성으로 환경변수 확실히 전달
+          cat > .env << EOF
+          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
+          CALELOG_JWT_SECRET=${{ secrets.CALELOG_JWT_SECRET }}
+          CALELOG_PROFILE=prod
+          CALELOG_CORS_ORIGINS=$CORS_ORIGINS
+          EOF
+          
+          echo "Created .env file with environment variables"
+          
+          # Docker Compose 시작 (.env 파일 자동 로드)
           docker compose up -d || docker-compose up -d
           
           # 상태 확인 (호환성 보장)
