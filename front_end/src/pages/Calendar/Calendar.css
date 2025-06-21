@@ -96,7 +96,8 @@
 
 .calendar-main {
   flex: 1;
-  padding: 20px;
+  background-color: white;
+  padding: 40px 80px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -123,8 +124,8 @@
 .calendar-container {
   background-color: white;
   border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  box-shadow: none;
   flex: 1;
 }
 
@@ -138,6 +139,102 @@
 }
 
 /* FullCalendar 커스텀 스타일 */
+/* 모든 테두리 제거 및 기본 스타일 */
+.calendar-container .fc-theme-standard .fc-scrollgrid,
+.calendar-container .fc-theme-standard td,
+.calendar-container .fc-theme-standard th {
+  border: none;
+}
+
+.calendar-container .fc-scrollgrid {
+  border: none !important;
+}
+
+/* 요일 표시 헤더의 배경색 변경 */
+.calendar-container thead {
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  background-color: #6E9F97;
+  overflow: hidden;
+}
+
+.calendar-container .fc-col-header-cell {
+  margin: 0 2px;
+}
+
+.calendar-container .fc-col-header-cell-cushion {
+  color: white;
+  font-weight: 500;
+  padding: 8px;
+  display: block;
+  text-align: center;
+}
+
+.calendar-container .fc-scroller {
+}
+
+/* 헤더와 캘린더 본문 사이에 간격 추가 */
+.calendar-container .fc-daygrid-body {
+  margin-top: 15px;
+}
+
+/* 날짜 셀 스타일 - 테두리만 적용 */
+.calendar-container .fc-daygrid-day,
+.calendar-container .fc-theme-standard td.fc-daygrid-day {
+  border-radius: 6px;
+  border: 1px solid #dee2e6 !important;
+  cursor: pointer;
+  position: relative;
+}
+
+/* 스크롤그리드 셀 간격 */
+.calendar-container .fc-scrollgrid-sync-table {
+  border-collapse: separate !important;
+  border-spacing: 3px !important;
+}
+
+.calendar-container .fc-daygrid-body table {
+}
+
+.calendar-container .fc-daygrid-day-frame {
+  padding: 4px;
+  z-index: 1;
+  pointer-events: auto !important;
+}
+
+/* 날짜 클릭 이벤트가 잘 작동하도록 추가 */
+.calendar-container .fc-daygrid-day-events,
+.calendar-container .fc-daygrid-body,
+.calendar-container .fc-daygrid-day-top {
+  pointer-events: auto !important;
+}
+
+/* 셀 내부 요소들에 클릭 이벤트가 동작하도록 설정 */
+
+/* 월별 뷰에서 일정이 점이 아닌 배경색 블록으로 표시되도록 변경 */
+.fc-daygrid-dot-event {
+  display: block !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+}
+
+/* 월별 뷰에서 작은 동그라미 점 숨기기 */
+.fc-daygrid-event-dot {
+  display: none !important;
+}
+
+/* 일정 텍스트 스타일 */
+.fc-daygrid-dot-event .fc-event-title {
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.calendar-container .fc-daygrid-day-top a {
+  cursor: pointer;
+}
+
 .calendar-container .fc .fc-daygrid-day.fc-day-today {
   background-color: rgba(74, 108, 247, 0.1);
 }
@@ -160,11 +257,42 @@
 
 /* 일정 유형별 색상 */
 .project-event {
-  background-color: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
+  /* 프로젝트의 색상은 JavaScript에서 지정함 */
+  border: none !important;
 }
 
 .inactive-event {
-  background-color: var(--danger-color) !important;
-  border-color: var(--danger-color) !important;
+  background-color: #CCCCCC !important;
+  border-color: #CCCCCC !important;
+}
+
+/* 월별 뷰에서 동그라미 점 숨기기 */
+.fc-daygrid-event-dot {
+  display: none !important;
+}
+
+/* 월별 뷰에서 일정이 블록으로 표시되도록 설정 */
+.fc-daygrid-dot-event {
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  display: block !important;
+}
+
+/* 월별 달력에서 일정 텍스트 색상 */
+.fc-daygrid-dot-event .fc-event-title {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+/* 월별 뷰에서 시간 숨기기 */
+.fc-daygrid-event .fc-event-time {
+  display: none !important;
+}
+
+.fc .fc-daygrid-body-natural .fc-daygrid-day-events {
+  margin-bottom: 0;
+}
+
+.fc .fc-daygrid-event-harness {
+  height: 30px;
 }

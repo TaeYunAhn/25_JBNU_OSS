@@ -345,6 +345,45 @@ function Calendar() {
               initialView={calendarView}
               initialDate={initialDate}
               headerToolbar={false} // 커스텀 툴바 사용
+              eventDidMount={(info) => {
+                // 이벤트가 DOM에 마운트될 때 직접 스타일 적용
+                const { event } = info;
+                const type = event.classNames.includes('inactive-event') ? 'INACTIVE' : 'PROJECT';
+                
+                // 비활동 일정은 회색, 프로젝트 일정은 해당 색상으로 설정
+                if (type === 'INACTIVE') {
+                  info.el.style.backgroundColor = '#CCCCCC';
+                  info.el.style.borderColor = '#CCCCCC';
+                } else {
+                  // 프로젝트 일정은 지정된 색상 그대로 유지
+                  info.el.style.backgroundColor = event.backgroundColor;
+                  info.el.style.borderColor = event.backgroundColor;
+                }
+                
+                // 일정 텍스트 색상
+                info.el.style.color = 'white';
+                
+                // 월별 뷰에서만 시간 정보 제거
+                if (info.view.type === 'dayGridMonth') {
+                  const titleEl = info.el.querySelector('.fc-event-title');
+                  if (titleEl) {
+                    // 시간 형식 패턴 제거
+                    const title = titleEl.textContent;
+                    
+                    // 여러 가지 시간 형식 패턴 처리
+                    let cleanTitle = title;
+                    
+                    // "(오전/오후) N시" 패턴 제거
+                    cleanTitle = cleanTitle.replace(/^(\s*(\uC624\uC804|\uC624\uD6C4)\s*\d{1,2}\s*\uC2DC(\s*\d{1,2}\s*\uBD84)?\s*)/, '');
+                    
+                    // "N:NN" 패턴 제거
+                    cleanTitle = cleanTitle.replace(/^(\s*\d{1,2}\:\d{2}\s*)/, '');
+                    
+                    // 결과 적용
+                    titleEl.textContent = cleanTitle;
+                  }
+                }
+              }}
             selectConstraint={{ // 하루를 넘어가는 드래그 선택 제한
               startTime: '00:00',
               endTime: '24:00',
@@ -383,6 +422,10 @@ function Calendar() {
             dayMaxEvents={true}
             eventClick={handleEventClick}
             select={handleDateSelect}
+            dateClick={(info) => handleDateSelect({
+              start: info.date,
+              end: new Date(info.date.getTime() + 3600000) // 1시간 후
+            })}
             datesSet={handleMonthChange}
             locale="ko"
             allDaySlot={false}
