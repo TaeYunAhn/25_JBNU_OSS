@@ -35,9 +35,9 @@
 }
 
 .no-projects {
-  padding: 20px;
+  padding: 20px 10px;
   text-align: center;
-  color: #6c757d;
+  color: white;
   border: 1px dashed #dee2e6;
   border-radius: 5px;
 }

@@ -2,8 +2,8 @@ import api from './api';
 import generateMockSchedules from '../mocks/data/schedules';
 import { addDays, addWeeks, addMonths, format, parse, getDay } from 'date-fns';
 
-// 캘린더 디자인 및 테스트를 위한 모의 데이터 사용 여부
-const USE_MOCK_DATA = true;
+// 실제 백엔드 API 사용으로 전환
+const USE_MOCK_DATA = false;
 
 // 반복 일정 생성을 위한 헬퍼 함수
 const generateRecurringSchedules = (baseSchedule, count = 10) => {
@@ -115,8 +115,8 @@ const scheduleService = {
           
         return activities;
       } else {
-        // 실제 API 호출
-        const response = await api.get(`/projects/${projectId}/activities`, {
+        // 실제 API 호출 - 접두어 제거
+        const response = await api.get('/api/projects/' + projectId + '/activities', {
           params: { limit }
         });
         return response.data;
@@ -139,8 +139,8 @@ const scheduleService = {
         // 모의 데이터 사용
         return generateMockSchedules(year, month);
       } else {
-        // 실제 API 호출
-        const response = await api.get('/schedules', {
+        // 실제 API 호출 - 접두어 제거
+        const response = await api.get('/api/schedules', {
           params: { year, month }
         });
         return response.data;
@@ -186,7 +186,7 @@ const scheduleService = {
         }
       } else {
         // 실제 API 호출 - 백엔드에서 처리하도록 함
-        const response = await api.post('/schedules', scheduleData);
+        const response = await api.post('/api/schedules', scheduleData);
         return response.data;
       }
     } catch (error) {
@@ -207,7 +207,7 @@ const scheduleService = {
         // 모의 데이터 업데이트 (실제로는 저장되지 않음)
         return { ...scheduleData, id: scheduleId };
       } else {
-        const response = await api.put(`/schedules/${scheduleId}`, scheduleData);
+        const response = await api.put(`/api/schedules/${scheduleId}`, scheduleData);
         return response.data;
       }
     } catch (error) {
@@ -228,7 +228,7 @@ const scheduleService = {
         // 모의 데이터 삭제 (실제로는 삭제되지 않음)
         return { success: true };
       } else {
-        const response = await api.delete(`/schedules/${scheduleId}`, {
+        const response = await api.delete(`/api/schedules/${scheduleId}`, {
           data: deleteOptions
         });
         return response.data;

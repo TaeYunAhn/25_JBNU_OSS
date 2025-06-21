@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 기본 API 인스턴스 생성
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '/api',
+  baseURL: process.env.REACT_APP_API_URL || '',  // 백엔드 URL 설정, 기본값은 같은 도메인
   headers: {
     'Content-Type': 'application/json',
   },

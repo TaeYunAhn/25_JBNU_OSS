@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatDateKorean } from '../../../utils/dateUtils';
+import projectService from '../../../services/projectService';
 import './ProjectList.css';
 
 // YY.MM.DD 형식으로 날짜 포맷팅하는 함수
@@ -26,8 +27,13 @@ const ProjectList = ({
   onProjectClick, 
   onAddProject, 
   onEditProject, 
-  selectedProjectId 
+  selectedProjectId,
+  year,
+  month
 }) => {
+  // 프로젝트별 월별 통계 데이터 상태 관리
+  const [projectStats, setProjectStats] = useState({});
+  const [loading, setLoading] = useState(false);
   // 활성화된 프로젝트만 필터링
   const filterActiveProjects = () => {
     const today = new Date();
@@ -40,8 +46,71 @@ const ProjectList = ({
   
   const activeProjects = filterActiveProjects();
   
-  // 프로젝트 진행률 계산 (목업 - 실제로는 API에서 제공될 수 있음)
+  // 월별 프로젝트 통계 데이터 조회
+  useEffect(() => {
+    const fetchProjectStats = async () => {
+      if (!projects || projects.length === 0 || !year || !month) {
+        console.log('통계 API 호출 건너뛼: 데이터 부족', { projects: projects?.length || 0, year, month });
+        return;
+      }
+      
+      console.log(`프로젝트 통계 조회 시작: ${year}년 ${month}월, 프로젝트 ${projects.length}개`);
+      setLoading(true);
+      
+      try {
+        // 이미 해당 월의 통계가 있는지 확인
+        const existingStats = {};
+        let needsFetch = false;
+        
+        projects.forEach(project => {
+          const stat = projectStats[project.id];
+          if (!stat || stat.year !== year || stat.month !== month) {
+            needsFetch = true;
+          } else {
+            existingStats[project.id] = stat;
+          }
+        });
+        
+        // 이미 모든 프로젝트의 통계가 있다면 API 호출 필요 없음
+        if (!needsFetch && Object.keys(existingStats).length === projects.length) {
+          console.log('프로젝트 통계: 이미 캡시된 데이터 사용');
+          setLoading(false);
+          return;
+        }
+        
+        const statsPromises = projects.map(project => 
+          projectService.getProjectMonthlyStats(project.id, year, month)
+        );
+        
+        const results = await Promise.all(statsPromises);
+        
+        // 결과를 프로젝트 ID를 키로 하는 객체로 변환
+        const newStats = {};
+        results.forEach(stat => {
+          if (stat && stat.projectId) {
+            console.log(`프로젝트 ${stat.projectId} 통계: 완료 ${stat.completedHours} / 요구 ${stat.requiredHours} 시간, 진도 ${stat.progressPercentage}%`);
+            newStats[stat.projectId] = stat;
+          }
+        });
+        
+        setProjectStats(prev => ({ ...prev, ...newStats }));
+      } catch (error) {
+        console.error('프로젝트 월별 통계 조회 중 오류:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProjectStats();
+  }, [projects, year, month]);
+  
+  // 프로젝트 진행률 계산 (월별 통계 API 데이터 사용)
   const calculateProgress = (project) => {
+    if (projectStats[project.id]) {
+      return projectStats[project.id].progressPercentage;
+    }
+    
+    // API 데이터가 없는 경우 기본 계산 방식 사용
     const today = new Date();
     const startDate = new Date(project.startDate);
     const endDate = new Date(project.endDate);
@@ -56,15 +125,23 @@ const ProjectList = ({
     return Math.min(100, Math.max(0, progress));
   };
   
+  // 프로젝트 완료 시간 조회 (월별 통계 API 데이터 사용)
+  const getCompletedHours = (project) => {
+    if (projectStats[project.id]) {
+      return projectStats[project.id].completedHours;
+    }
+    return 0; // API 데이터가 없는 경우 기본값
+  };
+  
   return (
     <div className="project-list">
       <div className="project-list-header">
-        <h3>프로젝트 목록</h3>
+        <h3>프로젝트 목록 ({year}년 {month}월)</h3>
       </div>
       
       {activeProjects.length === 0 ? (
         <div className="no-projects">
-          <p>활성화된 프로젝트가 없습니다.</p>
+          <p>생성된 프로젝트가 없습니다.</p>
           <p>신규 프로젝트를 추가해주세요.</p>
         </div>
       ) : (
@@ -102,7 +179,7 @@ const ProjectList = ({
                   <div className="project-hours">
                     <span>총 </span>
                     <span style={{ fontWeight: 'bold', color: '#343a40', marginRight: '4px' }}>
-                      {Math.floor(progress * project.monthlyRequiredHours / 100)} /
+                      {getCompletedHours(project)} /
                     </span>
                     <span style={{ fontWeight: 'bold', color: project.color || '#0d6efd' }}>
                       {project.monthlyRequiredHours}

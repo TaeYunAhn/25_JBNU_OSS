@@ -319,6 +319,8 @@ function Calendar() {
             onProjectClick={() => {}}
             onAddProject={handleAddProject}
             onEditProject={handleProjectEdit}
+            year={parseInt(year)}
+            month={parseInt(month)}
           />
           
           <div className="export-section">
