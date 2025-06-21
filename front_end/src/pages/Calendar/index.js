@@ -11,6 +11,7 @@ import ProjectList from '../../components/project/ProjectList';
 import ProjectModal from '../../components/project/ProjectModal';
 import useSchedule from '../../hooks/useSchedule';
 import useProject from '../../hooks/useProject';
+import useAuth from '../../hooks/useAuth';
 import exportService from '../../services/exportService';
 import './Calendar.css';
 import logoImage from '../../assets/images/logo_main.png';
@@ -19,6 +20,7 @@ function Calendar() {
   const { year, month } = useParams();
   const navigate = useNavigate();
   const calendarRef = useRef(null);
+  const { logout } = useAuth();
   
   // 커스텀 훅 사용
   const { 
@@ -284,11 +286,18 @@ function Calendar() {
     <div className="calendar-page">
       {/* 상단 네비게이션 바 */}
       <div className="top-nav-bar">
-        <div className="logo-container">
+        <div 
+          className="logo-container" 
+          onClick={() => navigate('/calendar')}
+          style={{ cursor: 'pointer' }}
+        >
           <img src={logoImage} alt="소중대 활동일지" />
         </div>
         <div className="user-info">
-          <div className="user-name">테스트 사용자님</div>
+          <div className="user-name-container">
+            <div className="user-name">테스트 사용자님</div>
+            <div className="logout-button" onClick={logout}>로그아웃</div>
+          </div>
           <div className="user-avatar">U</div>
         </div>
       </div>
@@ -401,31 +410,39 @@ function Calendar() {
               const endDate = new Date(selectInfo.end).setHours(0, 0, 0, 0);
               return startDate === endDate;
             }}
-            events={schedules && Array.isArray(schedules) ? schedules.map(schedule => {
-              // 프로젝트 색상 찾기
-              let backgroundColor = '#e74c3c'; // 기본 색상 (비활동 일정)
-              
-              if (schedule.type === 'PROJECT' && schedule.projectId) {
-                const project = projects.find(p => p.id === schedule.projectId);
-                if (project && project.color) {
-                  backgroundColor = project.color;
-                } else {
-                  backgroundColor = '#4a6cf7'; // 프로젝트 기본 색상
+            events={schedules && Array.isArray(schedules) ? 
+              // 일정 중복 방지를 위해 id값으로 중복 제거
+              [...new Map(schedules.map(item => [item.id, item])).values()].map(schedule => {
+                // 프로젝트 색상 찾기
+                let backgroundColor = '#e74c3c'; // 기본 색상 (비활동 일정)
+                
+                if (schedule.type === 'PROJECT' && schedule.projectId) {
+                  const project = projects.find(p => p.id === schedule.projectId);
+                  if (project && project.color) {
+                    backgroundColor = project.color;
+                  } else {
+                    backgroundColor = '#4a6cf7'; // 프로젝트 기본 색상
+                  }
                 }
-              }
-              
-              return {
-                id: schedule.id.toString(),
-                title: schedule.title,
-                start: schedule.start || `${schedule.date}T${schedule.startTime}`,
-                end: schedule.end || `${schedule.date}T${schedule.endTime}`,
-                backgroundColor: backgroundColor,
-                classNames: schedule.type === 'PROJECT' ? ['project-event'] : ['inactive-event']
-              };
-            }) : []}
+                
+                // 디버깅용 로그
+                console.log(`[일정 렌더링] ID: ${schedule.id}, 제목: ${schedule.title}`);
+                
+                return {
+                  id: schedule.id.toString(),
+                  title: schedule.title,
+                  start: schedule.start || `${schedule.date}T${schedule.startTime}`,
+                  end: schedule.end || `${schedule.date}T${schedule.endTime}`,
+                  backgroundColor: backgroundColor,
+                  classNames: schedule.type === 'PROJECT' ? ['project-event'] : ['inactive-event']
+                };
+              }) : []}
             selectable={true}
             selectMirror={true}
-            dayMaxEvents={true}
+            dayMaxEventRows={3}
+            moreLinkContent={(args) => {
+              return `+${args.num}`;
+            }}
             eventClick={handleEventClick}
             select={handleDateSelect}
             dateClick={(info) => handleDateSelect({

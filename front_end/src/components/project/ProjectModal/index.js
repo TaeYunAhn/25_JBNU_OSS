@@ -22,7 +22,7 @@ const ProjectModal = ({
 }) => {
   // 모달 제목 결정
   const getModalTitle = () => {
-    return mode === 'create' ? '새 프로젝트 추가' : '프로젝트 수정';
+    return mode === 'create' ? '프로젝트 추가' : '프로젝트 수정';
   };
   
   // 폼 제출 처리

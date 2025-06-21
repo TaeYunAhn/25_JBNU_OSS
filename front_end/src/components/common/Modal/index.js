@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import penIcon from '../../../assets/images/pen.png';
 import './Modal.css';
 
 /**
@@ -42,7 +43,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'medium' }) => {
     <div className="modal-overlay" onClick={handleOutsideClick}>
       <div className={`modal-container ${size}`} ref={modalRef}>
         <div className="modal-header">
-          <h2>{title}</h2>
+          <h2><img src={penIcon} alt="펜 아이콘" />{title}</h2>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
         <div className="modal-content">

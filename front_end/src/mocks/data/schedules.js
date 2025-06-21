@@ -106,6 +106,33 @@ const generateMockSchedules = (year = currentYear, month = currentMonth) => {
       projectId: 3,
       content: '팀원들과 주간 진행상황 공유 및 다음 단계 계획 수립'
     },
+    {
+      id: 11,
+      title: 'AI 연구실 프로젝트',
+      start: `${formatDate(year, month, 8)}T15:00:00`,
+      end: `${formatDate(year, month, 8)}T20:00:00`,
+      type: 'PROJECT',
+      projectId: 4,
+      content: '팀원들과 주간 진행상황 공유 및 다음 단계 계획 수립'
+    },
+    {
+      id: 12,
+      title: '웹 개발 인턴십',
+      start: `${formatDate(year, month, 8)}T20:00:00`,
+      end: `${formatDate(year, month, 8)}T23:00:00`,
+      type: 'PROJECT',
+      projectId: 3,
+      content: '팀원들과 주간 진행상황 공유 및 다음 단계 계획 수립'
+    },
+    {
+      id: 13,
+      title: 'AI 연구실 프로젝트',
+      start: `${formatDate(year, month, 5)}T20:00:00`,
+      end: `${formatDate(year, month, 5)}T23:00:00`,
+      type: 'PROJECT',
+      projectId: 4,
+      content: '팀원들과 주간 진행상황 공유 및 다음 단계 계획 수립'
+    },
   ];
 };
 

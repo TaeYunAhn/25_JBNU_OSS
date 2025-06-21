@@ -9,19 +9,19 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 10px;
-  border-bottom: 1px solid #e9ecef;
 }
 
 .schedule-title {
   margin: 0;
   font-size: 1.25rem;
-  color: #0d6efd;
   word-break: break-word;
+  color: var(--main-bg-color);
+  letter-spacing: 0.2em;
 }
 
-.schedule-title.inactive {
+/* .schedule-title.inactive {
   color: #6c757d;
-}
+} */
 
 .close-button {
   background: none;
@@ -56,14 +56,22 @@
 }
 
 .info-label {
+  letter-spacing: 0.2em;
   font-weight: 500;
-  color: #6c757d;
+  color: var(--main-bg-color);
   min-width: 80px;
 }
 
 .info-value {
-  color: #212529;
+  letter-spacing: 0.2em;
+  color: var(--main-bg-color);
 }
+
+.info-value.project-name {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--main-bg-color);
+} 
 
 .project-name {
   font-weight: 500;
@@ -90,40 +98,43 @@
 }
 
 .schedule-actions {
+  margin-right: -40px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 10px;
   padding-top: 15px;
-  border-top: 1px solid #e9ecef;
 }
 
 .btn-edit {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 8px 12px;
+  border: 1px solid #B8D3CE;
+  background-color: white;
+  color: var(--main-bg-color);
+  padding: 12px 30px;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
+  font-size: 1rem;
 }
 
 .btn-edit:hover {
-  background-color: #5a6268;
+  filter: brightness(0.85);
+  transition: filter 0.2s ease-in-out;
 }
 
 .btn-delete {
-  background-color: #dc3545;
+  background-color: #E86C60;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 12px 30px;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
+  font-size: 1rem;
 }
 
 .btn-delete:hover {
-  background-color: #c82333;
+  filter: brightness(0.85);
+  transition: filter 0.2s ease-in-out;
 }
 
 /* 반응형 디자인 */
