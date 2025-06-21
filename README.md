@@ -1,21 +1,30 @@
 ## 개발 환경 실행 가이드
 
-### 백엔드 실행 (Spring Boot)
+### 🚀 간단한 로컬 개발 (권장)
 ```bash
+# 터미널 1: 백엔드 실행
 cd back_end
 ./gradlew bootRun
-```
-- **실행 포트**: http://localhost:8080
-- **H2 콘솔**: http://localhost:8080/h2-console
-- **Swagger UI**: http://localhost:8080/swagger-ui/index.html
 
-### 프론트엔드 실행 (React)
-```bash
+# 터미널 2: 프론트엔드 실행  
 cd front_end
 npm install  # 최초 1회만 실행
 npm start
 ```
-- **실행 포트**: http://localhost:3000
+- **백엔드**: http://localhost:8080
+- **프론트엔드**: http://localhost:3000
+- **H2 콘솔**: http://localhost:8080/h2-console
+- **Swagger UI**: http://localhost:8080/swagger-ui/index.html
+
+### 🐳 Docker로 전체 시스템 테스트
+```bash
+# 전체 시스템 (nginx + SSL 포함)
+docker compose up -d
+
+# 접속 URL
+# HTTP: http://localhost
+# HTTPS: https://localhost (Self-signed 인증서 경고 무시)
+```
 
 ## API 테스트 가이드 (Swagger)
 

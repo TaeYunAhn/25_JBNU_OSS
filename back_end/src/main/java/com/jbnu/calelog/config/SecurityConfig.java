@@ -82,38 +82,39 @@ public class SecurityConfig {
     }
 
     /**
-     * CORS 설정 - CI/CD 및 확장성을 고려한 환경변수 기반 설정
+     * CORS 설정 - 환경별 통합 관리
+     * 로컬: 개발 포트 (3000, 3001, 8080)
+     * 배포: 환경변수 기반 동적 설정
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // 환경변수에서 허용 도메인 읽기 (기본값: 로컬 개발 환경)
+        // 1. 환경변수 기반 허용 도메인 (운영/개발 통합)
         List<String> origins = Arrays.asList(allowedOrigins.split(","));
-        configuration.setAllowedOriginPatterns(origins);
+        configuration.setAllowedOrigins(origins);
         
-        // 동적 패턴 추가 (EC2, AWS, 기타 클라우드 배포 고려)
-        configuration.addAllowedOriginPattern("http://*.amazonaws.com:*");   // AWS EC2
-        configuration.addAllowedOriginPattern("https://*.amazonaws.com:*");  // AWS EC2 HTTPS
-        configuration.addAllowedOriginPattern("http://*:3000");              // 모든 IP의 3000 포트
-        configuration.addAllowedOriginPattern("https://*.vercel.app");       // Vercel 배포
-        configuration.addAllowedOriginPattern("https://*.netlify.app");      // Netlify 배포
-        configuration.addAllowedOriginPattern("https://*.github.io");        // GitHub Pages
+        // 2. 개발 환경 기본 도메인 (로컬 개발 + Swagger UI)
+        configuration.addAllowedOrigin("http://localhost:8080");   // Swagger UI
+        configuration.addAllowedOrigin("http://127.0.0.1:8080");   // Swagger UI (127.0.0.1)
+        configuration.addAllowedOrigin("http://localhost:3000");   // 프론트엔드 개발
+        configuration.addAllowedOrigin("http://127.0.0.1:3000");   // 프론트엔드 개발
         
-        // 환경변수에서 허용 메서드 읽기
+        // 3. 허용 메서드 (환경변수 기반)
         List<String> methods = Arrays.asList(allowedMethods.split(","));
         configuration.setAllowedMethods(methods);
         
-        // 환경변수에서 허용 헤더 읽기 + 기본 필수 헤더 추가
+        // 4. 허용 헤더 (JWT 인증 고려)
         List<String> headers = Arrays.asList(allowedHeaders.split(","));
         configuration.setAllowedHeaders(headers);
+        configuration.addAllowedHeader("X-Requested-With");
         configuration.addAllowedHeader("Access-Control-Request-Method");
         configuration.addAllowedHeader("Access-Control-Request-Headers");
         
-        // 인증 정보 포함 허용 (JWT 토큰)
+        // 5. JWT 토큰 전송을 위한 Credentials 허용
         configuration.setAllowCredentials(true);
         
-        // 브라우저가 CORS 응답을 캐시하는 시간 (초)
+        // 6. CORS preflight 캐시 시간
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
