@@ -1,5 +1,8 @@
 package com.jbnu.calelog.controller;
 
+import com.jbnu.calelog.dto.*;
+import com.jbnu.calelog.service.ScheduleService;
+import com.jbnu.calelog.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -8,8 +11,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author Bae-Jihyeok, qowlgur121@gmail.com
@@ -21,7 +30,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/schedules")
 @Tag(name = "Schedules", description = "일정 관리 API - 단일/반복 일정 관리 및 시간 중복 검증")
 @SecurityRequirement(name = "bearerAuth")
+@RequiredArgsConstructor
 public class ScheduleController {
+
+    private final ScheduleService scheduleService;
+    private final UserService userService;
 
     @Operation(
         summary = "월별 일정 조회", 
@@ -69,11 +82,12 @@ public class ScheduleController {
         @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @GetMapping
-    public ResponseEntity<?> getSchedules(
+    public ResponseEntity<List<ScheduleResponseDto>> getSchedules(
             @Parameter(description = "조회할 년도") @RequestParam int year,
             @Parameter(description = "조회할 월 (1-12)") @RequestParam int month) {
-        // TODO: ScheduleService.getMonthlySchedules(year, month, userId) 구현 예정
-        return ResponseEntity.ok().body("[]");
+        Long userId = getCurrentUserId();
+        List<ScheduleResponseDto> schedules = scheduleService.getMonthlySchedules(year, month, userId);
+        return ResponseEntity.ok(schedules);
     }
 
     @Operation(
@@ -154,7 +168,7 @@ public class ScheduleController {
         )
     })
     @PostMapping
-    public ResponseEntity<?> createSchedule(
+    public ResponseEntity<ScheduleCreateResponseDto> createSchedule(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "일정 생성 정보",
             content = @Content(
@@ -204,7 +218,7 @@ public class ScheduleController {
                             {
                               "title": "알고리즘 수업",
                               "type": "INACTIVE",
-                              "description": "정규 수업",
+                              "content": "정규 수업",
                               "date": "2025-06-06",
                               "startTime": "09:00",
                               "endTime": "12:00",
@@ -217,9 +231,10 @@ public class ScheduleController {
                 }
             )
         )
-        @RequestBody Object createScheduleRequest) {
-        // TODO: ScheduleService.createSchedule(request, userId) 구현 예정
-        return ResponseEntity.status(201).body("{}");
+        @Valid @RequestBody ScheduleCreateRequestDto createScheduleRequest) {
+        Long userId = getCurrentUserId();
+        ScheduleCreateResponseDto response = scheduleService.createSchedule(createScheduleRequest, userId);
+        return ResponseEntity.status(201).body(response);
     }
 
     @Operation(
@@ -234,11 +249,12 @@ public class ScheduleController {
         @ApiResponse(responseCode = "409", description = "일정 중복")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateSchedule(
+    public ResponseEntity<ScheduleResponseDto> updateSchedule(
             @Parameter(description = "수정할 일정 ID") @PathVariable Long id,
-            @RequestBody Object updateScheduleRequest) {
-        // TODO: ScheduleService.updateSchedule(id, request, userId) 구현 예정
-        return ResponseEntity.ok().body("{}");
+            @Valid @RequestBody ScheduleUpdateRequestDto updateScheduleRequest) {
+        Long userId = getCurrentUserId();
+        ScheduleResponseDto response = scheduleService.updateSchedule(id, updateScheduleRequest, userId);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(
@@ -252,7 +268,7 @@ public class ScheduleController {
         @ApiResponse(responseCode = "404", description = "일정을 찾을 수 없음")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteSchedule(
+    public ResponseEntity<Void> deleteSchedule(
             @Parameter(description = "삭제할 일정 ID") @PathVariable Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                 description = "삭제 옵션 (반복 일정용)",
@@ -264,8 +280,28 @@ public class ScheduleController {
                         """)
                 )
             )
-            @RequestBody(required = false) Object deleteScheduleRequest) {
-        // TODO: ScheduleService.deleteSchedule(id, options, userId) 구현 예정
+            @RequestBody(required = false) ScheduleDeleteRequestDto deleteScheduleRequest) {
+        Long userId = getCurrentUserId();
+        ScheduleDeleteRequestDto request = deleteScheduleRequest != null ? deleteScheduleRequest : new ScheduleDeleteRequestDto();
+        scheduleService.deleteSchedule(id, request, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 현재 인증된 사용자의 ID를 SecurityContext에서 추출
+     */
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication != null && authentication.getDetails() instanceof Long) {
+            return (Long) authentication.getDetails();
+        }
+        
+        // JWT에서 사용자 ID 추출 실패 시 이메일로 조회
+        if (authentication != null && authentication.getName() != null) {
+            return userService.findByEmail(authentication.getName()).getId();
+        }
+        
+        throw new RuntimeException("인증된 사용자 정보를 찾을 수 없습니다.");
     }
 }
