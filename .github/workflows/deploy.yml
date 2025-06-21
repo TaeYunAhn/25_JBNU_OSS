@@ -1,0 +1,133 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 1. 코드 체크아웃
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2. Docker 이미지 빌드 (백엔드)
+    - name: Build Backend Docker Image
+      run: |
+        cd back_end
+        docker build -t calelog-backend:latest .
+
+    # 3. Docker 이미지 빌드 (프론트엔드)  
+    - name: Build Frontend Docker Image
+      run: |
+        cd front_end
+        docker build -t calelog-frontend:latest .
+
+    # 4. 이미지를 파일로 저장
+    - name: Save Docker Images
+      run: |
+        docker save calelog-backend:latest | gzip > backend.tar.gz
+        docker save calelog-frontend:latest | gzip > frontend.tar.gz
+
+    # 5. 파일 전송
+    - name: Transfer files to EC2
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: "backend.tar.gz,frontend.tar.gz,docker-compose.yml"
+        target: "/home/${{ secrets.EC2_USERNAME }}"
+
+    # 6. EC2 환경 설정 및 배포
+    - name: Setup and Deploy on EC2
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          # 현재 IP 주소 가져오기
+          export EC2_PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+          echo "Current EC2 IP: $EC2_PUBLIC_IP"
+          
+          # Docker 설치 확인 및 설치
+          if ! command -v docker &> /dev/null; then
+            echo "Docker not found. Installing Docker..."
+            sudo apt update
+            sudo apt install -y docker.io
+            sudo systemctl start docker
+            sudo systemctl enable docker
+            sudo usermod -aG docker $USER
+          fi
+          
+          # 개발자 친화적 Docker 권한 설정
+          echo "Setting up developer-friendly Docker permissions..."
+          sudo chmod 666 /var/run/docker.sock
+          
+          # 모든 사용자가 docker 명령어 사용 가능하도록
+          sudo usermod -aG docker ubuntu || true
+          
+          # Docker 권한 확인
+          echo "Docker permissions configured for development team access"
+          
+          # Self-signed SSL 인증서 생성 (TWA용 HTTPS)
+          echo "Creating self-signed SSL certificate for HTTPS..."
+          sudo mkdir -p /etc/ssl/certs /etc/ssl/private
+          sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout /etc/ssl/private/callog.key \
+            -out /etc/ssl/certs/callog.crt \
+            -subj "/C=KR/ST=Jeonbuk/L=Jeonju/O=JBNU/OU=ComputerEngineering/CN=callog.o-r.kr" \
+            -addext "subjectAltName=DNS:callog.o-r.kr,DNS:localhost,IP:127.0.0.1"
+          
+          # SSL 인증서 권한 설정
+          sudo chmod 600 /etc/ssl/private/callog.key
+          sudo chmod 644 /etc/ssl/certs/callog.crt
+          
+          echo "SSL certificate created successfully"
+          
+          # Docker Compose 플러그인 설치 확인 및 설치 (V2)
+          if ! docker compose version &> /dev/null; then
+            echo "Docker Compose V2 plugin not found. Installing..."
+            # Docker Compose V2를 플러그인으로 설치
+            DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+            mkdir -p $DOCKER_CONFIG/cli-plugins
+            sudo curl -SL https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+            sudo chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+            
+            # 시스템 전체 설치도 병행 (호환성)
+            sudo ln -sf $DOCKER_CONFIG/cli-plugins/docker-compose /usr/local/bin/docker-compose
+          fi
+          
+          # 기존 컨테이너 정리 (호환성 보장)
+          docker compose down || docker-compose down || true
+          
+          # 기존 이미지 삭제 
+          docker rmi calelog-backend:latest calelog-frontend:latest || true
+          
+          # 새 이미지 로드
+          docker load < backend.tar.gz
+          docker load < frontend.tar.gz
+          
+          # 도메인 + IP 기반 CORS 설정 생성
+          CORS_ORIGINS="http://callog.o-r.kr,https://callog.o-r.kr,http://$EC2_PUBLIC_IP:3000,http://$EC2_PUBLIC_IP:80,http://$EC2_PUBLIC_IP,http://localhost:3000,http://localhost:80"
+          
+          # 환경변수 직접 전달로 서비스 시작
+          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
+          CALELOG_JWT_SECRET=${{ secrets.CALELOG_JWT_SECRET }} \
+          CALELOG_PROFILE=prod \
+          CALELOG_CORS_ORIGINS="$CORS_ORIGINS" \
+          docker compose up -d || docker-compose up -d
+          
+          # 상태 확인 (호환성 보장)
+          echo "=== 서비스 상태 ==="
+          docker compose ps || docker-compose ps
+          echo "=== 접속 정보 ==="
+          echo "프론트엔드: http://$EC2_PUBLIC_IP:3000"
+          echo "백엔드: http://$EC2_PUBLIC_IP:8080"
+          echo "====================="
+          
+          # 정리
+          rm -f backend.tar.gz frontend.tar.gz
