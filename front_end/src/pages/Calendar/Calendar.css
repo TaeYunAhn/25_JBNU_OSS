@@ -1,14 +1,97 @@
 .calendar-page {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background-color: var(--light-gray);
 }
 
+/* 상단 네비게이션 바 스타일 */
+.top-nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: linear-gradient(to right, var(--main-bg-color), var(--main-bg-color-light));
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  height: 60px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-container img {
+  height: 70px;
+  width: auto;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  font-size: 14px;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #00AA94;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* 캘린더 콘텐츠 영역 스타일 */
+.calendar-content {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 60px);
+}
+
 .calendar-sidebar {
-  width: 300px;
-  background-color: white;
+  width: 280px;
+  background: linear-gradient(to bottom, var(--main-bg-color), var(--main-bg-color-light));
+  overflow-y: auto;
+}
+
+.calendar-sidebar .page-title {
+  color: white;
+  margin-bottom: 20px;
+}
+
+.sidebar-action-buttons {
+  border-top: 1px solid white;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   padding: 20px;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-add-project, .btn-add-schedule {
+  background: none;
+  color: white;
+  border-radius: 4px;
+  padding: 8px 4px;
+  font-size: 20px;
+  font-weight: 500;
+  flex: 1;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.btn-add-project:hover, .btn-add-schedule:hover {
+  background-color: var(--second-main-color);
 }
 
 .calendar-main {
@@ -16,6 +99,7 @@
   padding: 20px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .calendar-header {
@@ -45,9 +129,7 @@
 }
 
 .export-section {
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid var(--medium-gray);
+  padding: 20px;
 }
 
 .export-section h3 {

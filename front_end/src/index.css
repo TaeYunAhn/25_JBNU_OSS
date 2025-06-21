@@ -50,6 +50,8 @@ button {
   --medium-gray: #ddd;
   --dark-gray: #aaa;
   --main-bg-color: #344B47;
+  --main-bg-color-light: #B8D3CE;
+  --content-bg-color: #DDECE3;
   --main-button-color: #00AA94;
   --second-main-color: #438365;
 }

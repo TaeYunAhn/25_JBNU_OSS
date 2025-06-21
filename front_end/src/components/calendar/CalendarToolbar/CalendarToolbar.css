@@ -111,7 +111,7 @@
 }
 
 .btn-export {
-  background-color: #198754;
+  background-color: var(--main-button-color);
   color: white;
   border: none;
   border-radius: 4px;

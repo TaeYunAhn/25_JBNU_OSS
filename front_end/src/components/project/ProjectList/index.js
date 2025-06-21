@@ -2,6 +2,15 @@ import React from 'react';
 import { formatDateKorean } from '../../../utils/dateUtils';
 import './ProjectList.css';
 
+// YY.MM.DD 형식으로 날짜 포맷팅하는 함수
+const formatShortDate = (dateString) => {
+  const date = new Date(dateString);
+  const yy = date.getFullYear().toString().slice(2);
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yy}.${mm}.${dd}`;
+};
+
 /**
  * 프로젝트 목록 컴포넌트
  * @param {Object} props
@@ -51,9 +60,6 @@ const ProjectList = ({
     <div className="project-list">
       <div className="project-list-header">
         <h3>프로젝트 목록</h3>
-        <button className="add-project-btn" onClick={onAddProject}>
-          + 신규 프로젝트
-        </button>
       </div>
       
       {activeProjects.length === 0 ? (
@@ -88,14 +94,14 @@ const ProjectList = ({
                   </div>
                   
                   <div className="project-dates">
-                    <span>{formatDateKorean(project.startDate)}</span>
-                    <span> ~ </span>
-                    <span>{formatDateKorean(project.endDate)}</span>
+                    <span>{formatShortDate(project.startDate)}</span>
+                    <span>~</span>
+                    <span>{formatShortDate(project.endDate)}</span>
                   </div>
                   
                   <div className="project-hours">
-                    <span>월 필수 시간: </span>
-                    <strong>{project.monthlyRequiredHours}시간</strong>
+                    <span>총 </span>
+                    <strong>{Math.floor(progress * project.monthlyRequiredHours / 100)}/{project.monthlyRequiredHours} 시간</strong>
                   </div>
                   
                   <div className="project-progress">
@@ -105,7 +111,7 @@ const ProjectList = ({
                         style={{ width: `${progress}%` }}
                       />
                     </div>
-                    <span className="progress-text">{progress}% 진행</span>
+                    <span className="progress-text">{progress}%</span>
                   </div>
                 </div>
               </li>
