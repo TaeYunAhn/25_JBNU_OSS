@@ -44,23 +44,25 @@
   margin-bottom: 1.5rem;
 }
 
-.form-group {
+.register-form .form-group {
   margin-bottom: 1.5rem;
 }
 
-.form-label {
+.register-form .form-label {
   display: block;
   margin-bottom: 0.5rem;
-  color: white;
+  color: white !important;
   font-size: 0.9rem;
 }
 
-.form-group label {
+.register-form .form-group label {
   color: white;
   letter-spacing: 0.3em;
+  font-weight: 500;
 }
 
-.form-group input, .form-group textarea {
+.register-form .form-group input, .register-form .form-group textarea {
+  font-family: 'Inria Sans', sans-serif;
   border-radius: 8px;
   height: 50px;
   letter-spacing: 0.3em;

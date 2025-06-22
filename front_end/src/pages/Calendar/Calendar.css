@@ -32,10 +32,46 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+}
+
+.user-name-container {
+  position: relative;
+  cursor: pointer;
 }
 
 .user-name {
   font-size: 14px;
+}
+
+.logout-button {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: var(--main-bg-color);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s, visibility 0.2s;
+}
+
+.logout-button:hover {
+  background-color: var(--main-button-color);
+}
+
+.user-name-container:hover .logout-button,
+.logout-button:hover {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .user-avatar {
@@ -170,8 +206,8 @@
   text-align: center;
 }
 
-.calendar-container .fc-scroller {
-}
+/* 스크롤러 스타일 필요시 이 곳에 추가 */
+
 
 /* 헤더와 캘린더 본문 사이에 간격 추가 */
 .calendar-container .fc-daygrid-body {
@@ -193,11 +229,12 @@
   border-spacing: 3px !important;
 }
 
-.calendar-container .fc-daygrid-body table {
-}
+/* 달력 테이블 스타일 필요시 이 곳에 추가 */
+
 
 .calendar-container .fc-daygrid-day-frame {
-  padding: 4px;
+  height: 125px;
+  padding: 0 4px;
   z-index: 1;
   pointer-events: auto !important;
 }
@@ -255,6 +292,56 @@
 .calendar-container .fc-event {
   cursor: pointer;
   border: none;
+  padding: 3px 5px;
+}
+
+/* 일정 내용 커스터마이징 */
+.fc-event-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.fc-event-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.fc-event-time {
+  font-size: 0.85em;
+  color: white !important;
+  margin-bottom: 2px;
+}
+
+.fc-event-description {
+  font-size: 0.85em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 주/일 뷰 특별 스타일 */
+.fc-timeGridWeek-view .fc-event,
+.fc-timeGridDay-view .fc-event {
+  padding: 5px 8px;
+  background-color: #ccc;
+  border: none;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+/* 격치는 일정 관련 경고 스타일 */
+.fc-event-overlap-warning {
+  position: relative;
+}
+
+.fc-event-overlap-warning::before {
+  content: '\26A0'; /* 경고 아이콘 */
+  position: absolute;
+  right: 5px;
+  top: 2px;
+  color: #e74c3c;
+  font-size: 1.2em;
 }
 
 /* 일정 유형별 색상 */
@@ -284,6 +371,7 @@
 .fc-daygrid-dot-event .fc-event-title {
   color: white !important;
   font-weight: 500 !important;
+  height: 20px;
 }
 
 /* 월별 뷰에서 시간 숨기기 */
@@ -303,6 +391,24 @@
 /* 빈 'more' 버튼 영역 숨기기 */
 .fc-daygrid-day-bottom:empty {
   display: none;
+}
+
+/* 더 보기 버튼 스타일링 (+N) */
+.fc-daygrid-more-link {
+  width: 100%;
+  background-color: #cccccc;
+  color: white;
+  border-radius: 4px;
+  margin-top: 2px;
+  padding: 2px 4px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  justify-content: center;
+  cursor: default;
+  padding-left: 4px !important;
+  height: 20px;
 }
 
 /* 주별/일별 뷰 테두리 추가 */
@@ -327,12 +433,12 @@
 
 /* 시간대 구분선 - 30분 단위 */
 .fc .fc-timegrid-slot.fc-timegrid-slot-lane.fc-timegrid-slot-minor {
-  border-bottom: 1px dotted #aaa !important;
+  border-bottom: 1px solid #ccc !important;
 }
 
 /* 시간대 구분선 - 정시 (12시, 1시 등) */
 .fc .fc-timegrid-slot.fc-timegrid-slot-lane:not(.fc-timegrid-slot-minor) {
-  border-bottom: 1px solid #ccc !important;
+  border-bottom: 1px dotted #aaa !important;
 }
 
 /* 시간 레이블 스타일 강화 */

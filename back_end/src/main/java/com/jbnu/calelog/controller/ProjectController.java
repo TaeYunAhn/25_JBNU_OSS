@@ -2,6 +2,7 @@ package com.jbnu.calelog.controller;
 
 import com.jbnu.calelog.dto.ProjectActivityDto;
 import com.jbnu.calelog.dto.ProjectCreateRequestDto;
+import com.jbnu.calelog.dto.ProjectMonthlyStatsDto;
 import com.jbnu.calelog.dto.ProjectResponseDto;
 import com.jbnu.calelog.dto.ProjectUpdateRequestDto;
 import com.jbnu.calelog.service.ProjectService;
@@ -206,6 +207,41 @@ public class ProjectController {
         Long userId = getCurrentUserId();
         List<ProjectActivityDto> activities = projectService.getRecentActivities(id, limit, userId);
         return ResponseEntity.ok(activities);
+    }
+
+    @Operation(
+        summary = "월별 프로젝트 통계 조회", 
+        description = "특정 프로젝트의 특정 연월에 대한 통계 정보(완료 시간, 진행률)를 조회합니다."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "조회 성공",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(value = """
+                    {
+                      "projectId": 1,
+                      "year": 2025,
+                      "month": 6,
+                      "completedHours": 28.5,
+                      "requiredHours": 40.0,
+                      "progressPercentage": 71.25
+                    }
+                    """)
+            )
+        ),
+        @ApiResponse(responseCode = "401", description = "인증 실패"),
+        @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음")
+    })
+    @GetMapping("/{id}/monthly-stats")
+    public ResponseEntity<ProjectMonthlyStatsDto> getProjectMonthlyStats(
+            @Parameter(description = "조회할 프로젝트 ID") @PathVariable Long id,
+            @Parameter(description = "조회할 연도") @RequestParam(required = true) Integer year,
+            @Parameter(description = "조회할 월 (1-12)") @RequestParam(required = true) Integer month) {
+        Long userId = getCurrentUserId();
+        ProjectMonthlyStatsDto stats = projectService.getMonthlyStats(id, year, month, userId);
+        return ResponseEntity.ok(stats);
     }
 
     /**

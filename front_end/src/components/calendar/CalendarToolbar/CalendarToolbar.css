@@ -3,7 +3,6 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  margin-bottom: 15px;
 }
 
 .toolbar-left {
@@ -13,8 +12,8 @@
 }
 
 .btn-today {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background-color: white;
+  border: 1px solid var(--content-bg-color);
   border-radius: 4px;
   padding: 6px 12px;
   font-size: 0.9rem;

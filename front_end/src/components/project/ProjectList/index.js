@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatDateKorean } from '../../../utils/dateUtils';
+import projectService from '../../../services/projectService';
 import './ProjectList.css';
 
 // YY.MM.DD 형식으로 날짜 포맷팅하는 함수
@@ -26,22 +27,109 @@ const ProjectList = ({
   onProjectClick, 
   onAddProject, 
   onEditProject, 
-  selectedProjectId 
+  selectedProjectId,
+  year,
+  month,
+  refreshTrigger
 }) => {
-  // 활성화된 프로젝트만 필터링
+  // 프로젝트별 월별 통계 데이터 상태 관리
+  const [projectStats, setProjectStats] = useState({});
+  const [loading, setLoading] = useState(false);
+  // 활성화된 프로젝트와 선택된 년-월에 포함된 프로젝트만 필터링
   const filterActiveProjects = () => {
+    if (!year || !month) {
+      return []; // 년-월 정보가 없으면 빈 배열 반환
+    }
+    
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     
+    // 선택된 년-월의 첫날과 마지막 날
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0);
+    
     return projects.filter(project => {
-      return project.endDate >= todayStr;
+      // 프로젝트가 이미 종료되었는지 확인
+      const isActive = project.endDate >= todayStr;
+      
+      // 프로젝트의 시작일과 종료일
+      const projectStart = new Date(project.startDate);
+      const projectEnd = new Date(project.endDate);
+      
+      // 프로젝트 기간과 선택된 월이 겹치는지 확인
+      const isInMonth = 
+        (projectStart <= endOfMonth) && (projectEnd >= startOfMonth);
+      
+      // 활성화 상태이면서 해당 월에 포함된 프로젝트만 반환
+      return isActive && isInMonth;
     });
   };
   
   const activeProjects = filterActiveProjects();
   
-  // 프로젝트 진행률 계산 (목업 - 실제로는 API에서 제공될 수 있음)
+  // 월별 프로젝트 통계 데이터 조회
+  useEffect(() => {
+    console.log(`프로젝트 목록 통계 새로고침 시도: refreshTrigger =`, refreshTrigger);
+    const fetchProjectStats = async () => {
+      if (!projects || projects.length === 0 || !year || !month) {
+        console.log('통계 API 호출 건너뛰: 데이터 부족', { projects: projects?.length || 0, year, month });
+        return;
+      }
+      
+      console.log(`프로젝트 통계 조회 시작: ${year}년 ${month}월, 프로젝트 ${projects.length}개, 트리거: ${refreshTrigger}`);
+      setLoading(true);
+      
+      try {
+        // 언제나 새로운 통계 데이터 가져오기
+        console.log('프로젝트 통계 새로 가져오기 시도');
+        
+        try {
+          // 프로젝트 ID를 숫자로 변환하여 확실히 가져오기
+          const statsPromises = projects.map(project => {
+            const projectId = parseInt(project.id, 10) || project.id;
+            return projectService.getProjectMonthlyStats(projectId, year, month);
+          });
+          
+          console.log('프로젝트 통계 API 호출 중...', statsPromises.length);
+          const results = await Promise.all(statsPromises);
+          console.log('프로젝트 통계 API 호출 결과 받음:', results.length);
+          
+          // 결과를 프로젝트 ID를 키로 하는 객체로 변환
+          const newStats = {};
+          results.forEach(stat => {
+            if (stat && stat.projectId) {
+              console.log(`프로젝트 ${stat.projectId} 통계 갱신: 완료 ${stat.completedHours} / 요구 ${stat.requiredHours} 시간, 진도 ${stat.progressPercentage}%`);
+              newStats[stat.projectId] = {
+                ...stat,
+                year: parseInt(year),
+                month: parseInt(month)
+              };
+            }
+          });
+          
+          // 이전 통계 대체하지 않고 완전히 새로 설정
+          setProjectStats(newStats);
+        } catch (fetchError) {
+          console.error('프로젝트 통계 API 호출 오류:', fetchError);
+          throw fetchError;
+        }
+      } catch (error) {
+        console.error('프로젝트 월별 통계 조회 중 오류:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProjectStats();
+  }, [projects, year, month, refreshTrigger]);
+  
+  // 프로젝트 진행률 계산 (월별 통계 API 데이터 사용)
   const calculateProgress = (project) => {
+    if (projectStats[project.id]) {
+      return projectStats[project.id].progressPercentage;
+    }
+    
+    // API 데이터가 없는 경우 기본 계산 방식 사용
     const today = new Date();
     const startDate = new Date(project.startDate);
     const endDate = new Date(project.endDate);
@@ -56,15 +144,23 @@ const ProjectList = ({
     return Math.min(100, Math.max(0, progress));
   };
   
+  // 프로젝트 완료 시간 조회 (월별 통계 API 데이터 사용)
+  const getCompletedHours = (project) => {
+    if (projectStats[project.id]) {
+      return projectStats[project.id].completedHours;
+    }
+    return 0; // API 데이터가 없는 경우 기본값
+  };
+  
   return (
     <div className="project-list">
       <div className="project-list-header">
-        <h3>프로젝트 목록</h3>
+        <h3>프로젝트 목록 ({year}년 {month}월)</h3>
       </div>
       
       {activeProjects.length === 0 ? (
         <div className="no-projects">
-          <p>활성화된 프로젝트가 없습니다.</p>
+          <p>생성된 프로젝트가 없습니다.</p>
           <p>신규 프로젝트를 추가해주세요.</p>
         </div>
       ) : (
@@ -101,8 +197,8 @@ const ProjectList = ({
                   
                   <div className="project-hours">
                     <span>총 </span>
-                    <span style={{ fontWeight: 'bold', color: '#343a40' }}>
-                      {Math.floor(progress * project.monthlyRequiredHours / 100)}/
+                    <span style={{ fontWeight: 'bold', color: '#343a40', marginRight: '4px' }}>
+                      {getCompletedHours(project)} /
                     </span>
                     <span style={{ fontWeight: 'bold', color: project.color || '#0d6efd' }}>
                       {project.monthlyRequiredHours}

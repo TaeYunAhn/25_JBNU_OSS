@@ -53,7 +53,7 @@ const useSchedule = (initialYear, initialMonth) => {
         const conflictCheck = checkScheduleConflict(scheduleData, schedules);
         if (conflictCheck.hasConflict) {
           setError(conflictCheck.error || '일정이 중복됩니다.');
-          return { success: false, error: conflictCheck.error, conflicts: conflictCheck.conflictSchedules };
+          throw new Error(conflictCheck.error || '일정이 중복됩니다.');
         }
       }
       
@@ -74,7 +74,8 @@ const useSchedule = (initialYear, initialMonth) => {
     } catch (err) {
       setError('일정을 생성하는 중 오류가 발생했습니다.');
       console.error(err);
-      return { success: false, error: err.message };
+      setLoading(false);
+      throw err; // 오류를 위로 전파하여 상위에서 처리하게 함
     } finally {
       setLoading(false);
     }
@@ -90,7 +91,7 @@ const useSchedule = (initialYear, initialMonth) => {
       const conflictCheck = checkScheduleConflict(scheduleData, schedules, scheduleId);
       if (conflictCheck.hasConflict) {
         setError(conflictCheck.error || '일정이 중복됩니다.');
-        return { success: false, error: conflictCheck.error, conflicts: conflictCheck.conflictSchedules };
+        throw new Error(conflictCheck.error || '일정이 중복됩니다.');
       }
       
       const updatedSchedule = await scheduleService.updateSchedule(scheduleId, scheduleData);
@@ -101,7 +102,8 @@ const useSchedule = (initialYear, initialMonth) => {
     } catch (err) {
       setError('일정을 수정하는 중 오류가 발생했습니다.');
       console.error(err);
-      return { success: false, error: err.message };
+      setLoading(false);
+      throw err; // 오류를 위로 전파하여 상위에서 처리하게 함
     } finally {
       setLoading(false);
     }
@@ -140,7 +142,8 @@ const useSchedule = (initialYear, initialMonth) => {
     } catch (err) {
       setError('일정을 삭제하는 중 오류가 발생했습니다.');
       console.error(err);
-      return { success: false, error: err.message };
+      setLoading(false);
+      throw err; // 오류를 위로 전파하여 상위에서 처리하게 함
     } finally {
       setLoading(false);
     }

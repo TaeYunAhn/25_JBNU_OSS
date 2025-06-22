@@ -190,4 +190,51 @@ public class ProjectService {
         long minutes = java.time.Duration.between(start, end).toMinutes();
         return minutes / 60.0;
     }
+    
+    /**
+     * 특정 프로젝트의 월별 통계 정보 조회
+     * 
+     * @param projectId 프로젝트 ID
+     * @param year 년도
+     * @param month 월
+     * @param userId 사용자 ID (권한 검증용)
+     * @return 프로젝트의 월별 통계 정보
+     */
+    public ProjectMonthlyStatsDto getMonthlyStats(Long projectId, int year, int month, Long userId) {
+        // 프로젝트 소유권 검증
+        Project project = projectRepository.findByIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없거나 조회 권한이 없습니다"));
+        
+        // 해당 월의 프로젝트 일정 조회
+        List<Schedule> monthlySchedules = scheduleRepository
+                .findByProjectIdAndYearAndMonth(projectId, year, month);
+        
+        // 완료된 시간 계산
+        double completedHours = monthlySchedules.stream()
+                .mapToDouble(this::calculateDurationInHours)
+                .sum();
+        
+        // 소수점 1자리로 반올림
+        completedHours = Math.round(completedHours * 10.0) / 10.0;
+        
+        // 필요한 시간 (프로젝트에 설정된 월 요구 시간)
+        double requiredHours = project.getMonthlyRequiredHours();
+        
+        // 진행률 계산 (완료 시간 / 요구 시간) x 100%
+        double progressPercentage = (requiredHours > 0) ? (completedHours / requiredHours) * 100.0 : 0.0;
+        
+        // 0-100 범위로 제한 및 소수점 2자리로 반올림
+        progressPercentage = Math.min(Math.max(progressPercentage, 0.0), 100.0);
+        progressPercentage = Math.round(progressPercentage * 100.0) / 100.0;
+        
+        // DTO 구성 및 반환
+        return ProjectMonthlyStatsDto.builder()
+                .projectId(projectId)
+                .year(year)
+                .month(month)
+                .completedHours(completedHours)
+                .requiredHours(requiredHours)
+                .progressPercentage(progressPercentage)
+                .build();
+    }
 }

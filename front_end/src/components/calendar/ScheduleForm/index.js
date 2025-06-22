@@ -64,6 +64,36 @@ const DAY_OPTIONS = [
 ];
 
 /**
+ * 선택된 날짜에 포함되는 프로젝트만 필터링하는 함수
+ * @param {Array} projects - 프로젝트 목록
+ * @param {string} selectedDate - 선택된 날짜 (YYYY-MM-DD 형식)
+ * @returns {Array} 필터링된 프로젝트 목록
+ */
+const filterProjectsByDate = (projects, selectedDate) => {
+  if (!selectedDate || !projects || projects.length === 0) {
+    return [];
+  }
+  
+  const selectedDateObj = new Date(selectedDate);
+  const today = new Date();
+  
+  return projects.filter(project => {
+    // 프로젝트가 이미 종료되었는지 확인
+    const isActive = project.endDate >= today.toISOString().split('T')[0];
+    
+    // 프로젝트의 시작일과 종료일
+    const projectStart = new Date(project.startDate);
+    const projectEnd = new Date(project.endDate);
+    
+    // 선택된 날짜가 프로젝트 기간에 포함되는지 확인
+    const isInProjectPeriod = 
+      (projectStart <= selectedDateObj) && (projectEnd >= selectedDateObj);
+    
+    return isActive && isInProjectPeriod;
+  });
+};
+
+/**
  * 일정 생성 및 수정 폼 컴포넌트
  * @param {Object} props - 컴포넌트 속성
  * @param {Object} props.schedule - 수정시 일정 데이터
@@ -71,9 +101,11 @@ const DAY_OPTIONS = [
  * @param {Array} props.projects - 프로젝트 목록
  * @param {Function} props.onSubmit - 제출 핸들러
  * @param {Function} props.onCancel - 취소 핸들러
+ * @param {Function} props.onProjectSelect - 프로젝트 선택 시 호출될 함수
+ * @param {string} props.apiError - API 오류 메시지
  * @returns {React.ReactElement}
  */
-const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) => {
+const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel, onProjectSelect, apiError: externalApiError }) => {
   // 기본 상태 초기화
   const [formData, setFormData] = useState({
     title: '',
@@ -86,7 +118,7 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
     endTime: '10:00',
     repeat: {
       enabled: false,
-      frequency: 'daily',
+      frequency: '',
       interval: 1,
       days: [],
       endType: 'never',
@@ -97,10 +129,43 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
   
   const [errors, setErrors] = useState({});
   const [submitDisabled, setSubmitDisabled] = useState(false);
-  const [recentActivities, setRecentActivities] = useState([]);
-  const [loadingActivities, setLoadingActivities] = useState(false);
+  const [apiError, setApiError] = useState(null); // API 오류 처리를 위한 상태
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   const { getProjectRecentActivities } = useSchedule();
   
+  // 외부에서 전달된 오류 상태 반영
+  useEffect(() => {
+    if (externalApiError) {
+      setApiError(externalApiError);
+      // 기존 오류 메시지 요소가 있다면 제거
+      const existingError = document.getElementById('force-error-message');
+      if (existingError) {
+        existingError.remove();
+      }
+    }
+  }, [externalApiError]);
+  
+  // 날짜가 변경되면 프로젝트 선택 검증
+  useEffect(() => {
+    // 프로젝트가 선택되어 있고 일정 유형이 프로젝트인 경우
+    if (formData.projectId && formData.type === 'PROJECT') {
+      // 해당 날짜에 유효한 프로젝트만 필터링
+      const validProjects = filterProjectsByDate(projects, formData.date);
+      
+      // 현재 선택된 프로젝트가 필터링된 목록에 있는지 확인
+      const projectStillValid = validProjects.some(p => p.id === Number(formData.projectId) || p.id === formData.projectId);
+      
+      // 프로젝트가 유효하지 않으면 초기화
+      if (!projectStillValid) {
+        console.log('현재 선택된 프로젝트가 선택된 날짜에 유효하지 않음, 초기화함');
+        setFormData(prev => ({
+          ...prev,
+          projectId: ''
+        }));
+      }
+    }
+  }, [formData.date, projects, formData.projectId, formData.type]);
+
   // 수정 모드이거나 선택한 날짜가 있을 때 폼 데이터 초기화
   useEffect(() => {
     if (schedule) {
@@ -134,24 +199,6 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
     }
   }, [schedule, initialDate]);
   
-  // 프로젝트 선택 시 해당 프로젝트의 최근 활동 내역 로드
-  const loadRecentActivities = async (projectId) => {
-    if (!projectId) {
-      setRecentActivities([]);
-      return;
-    }
-    
-    setLoadingActivities(true);
-    try {
-      const activities = await getProjectRecentActivities(Number(projectId));
-      setRecentActivities(activities);
-    } catch (error) {
-      console.error('최근 활동 내역 로드 중 오류:', error);
-    } finally {
-      setLoadingActivities(false);
-    }
-  };
-  
   // 필드 값 변경 핸들러
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -170,9 +217,12 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
       }
     }
     
-    // 프로젝트 선택 시 최근 활동 내역 로드
+    // 프로젝트 선택 시 활동 모달 열기
     if (name === 'projectId' && value) {
-      loadRecentActivities(value);
+      setSelectedProjectId(value);
+      if (onProjectSelect) {
+        onProjectSelect(value);
+      }
     }
     
     // 반복 설정 필드 처리
@@ -245,24 +295,42 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
   };
   
   // 폼 제출 핸들러
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitDisabled(true);
+    // 오류 초기화
+    setApiError(null);
     
     // 유효성 검사
     const validation = validateSchedule(formData);
     if (!validation.isValid) {
       setErrors(validation.errors);
-      setSubmitDisabled(false);
       return;
     }
     
-    onSubmit(formData);
+    try {
+      // 일정 제출
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('일정 생성/수정 중 오류:', error);
+      
+      // 오류 메시지 추출
+      const errorMessage = error.message || '일정을 저장하는 중 오류가 발생했습니다.';
+      
+      // 오류 상태 설정 (토스트 알림은 상위 컴포넌트에서 처리)
+      if (errorMessage.includes('일정 중복') || errorMessage.includes('중복')) {
+        setApiError('해당 시간에 이미 일정이 존재합니다. 다른 시간을 선택해주세요.');
+      } else {
+        setApiError(errorMessage);
+      }
+      
+      return; // 함수 종료
+    }
   };
   
   return (
-    <div className="schedule-form-container">
-      <form className="schedule-form" onSubmit={handleSubmit}>
+    <>
+      <div className="schedule-form-container">
+        <form className="schedule-form" onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="title">일정 제목 *</label>
           <input
@@ -344,7 +412,7 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
               required={formData.type === 'PROJECT'}
             >
               <option value="">프로젝트를 선택하세요</option>
-              {projects.map(project => (
+              {filterProjectsByDate(projects, formData.date).map(project => (
                 <option key={project.id} value={project.id}>
                   {project.name}
                 </option>
@@ -466,7 +534,7 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
                       checked={formData.repeat.endType === 'date'}
                       onChange={handleChange}
                     />
-                    <label htmlFor="endDate">날짜:</label>
+                    <label htmlFor="endDate" style={{ width: '60px' }}>날짜:</label>
                     <input
                       type="date"
                       name="repeat.endDate"
@@ -485,7 +553,7 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
                       checked={formData.repeat.endType === 'count'}
                       onChange={handleChange}
                     />
-                    <label htmlFor="endCount">다음</label>
+                    <label htmlFor="endCount" style={{ width: '80px' }}>다음</label>
                     <input
                       type="number"
                       name="repeat.endCount"
@@ -495,7 +563,7 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
                       max="999"
                       disabled={formData.repeat.endType !== 'count'}
                     />
-                    <label>회 반복</label>
+                    <label style={{ width: '110px' }}>회 반복</label>
                   </div>
                 </div>
               </div>
@@ -508,44 +576,15 @@ const ScheduleForm = ({ schedule, initialDate, projects, onSubmit, onCancel }) =
         <button type="button" className="btn-cancel" onClick={onCancel}>
           취소
         </button>
-        <button type="submit" className="btn-primary" disabled={submitDisabled}>
+        <button type="submit" className="btn-primary">
           {schedule ? '수정' : '생성'}
         </button>
       </div>
-      </form>
+        </form>
+      </div>
       
-      {/* 프로젝트 최근 활동 내역 표시 영역 */}
-      {formData.type === 'PROJECT' && formData.projectId && (
-        <div className="recent-activities-container">
-          <h3>프로젝트 최근 활동</h3>
-          {loadingActivities ? (
-            <div className="loading-activities">로딩 중...</div>
-          ) : recentActivities.length > 0 ? (
-            <ul className="activities-list">
-              {recentActivities.map(activity => (
-                <li key={activity.id} className="activity-item">
-                  <div className="activity-date">
-                    {activity.date ? (
-                      // 유효한 날짜 값인지 확인하고 안전하게 포맷팅
-                      (() => {
-                        try {
-                          return format(new Date(activity.date), 'yyyy-MM-dd', { locale: ko });
-                        } catch (e) {
-                          return activity.date; // 포맷팅 실패 시 원래 문자열 그대로 반환
-                        }
-                      })()
-                    ) : '날짜 없음'}
-                  </div>
-                  <div className="activity-content">{activity.content}</div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="no-activities">최근 활동이 없습니다.</div>
-          )}
-        </div>
-      )}
-    </div>
+
+    </>
   );
 };
 

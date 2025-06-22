@@ -1,9 +1,14 @@
 import api from './api';
-import generateMockSchedules from '../mocks/data/schedules';
 import { addDays, addWeeks, addMonths, format, parse, getDay } from 'date-fns';
 
-// 캘린더 디자인 및 테스트를 위한 모의 데이터 사용 여부
-const USE_MOCK_DATA = true;
+// 목업 데이터 제거 - 실제 백엔드 API만 사용
+const USE_MOCK_DATA = false;
+
+// 목업용 빈 함수 - 참조 오류 방지
+const generateMockSchedules = () => { 
+  console.warn('목업 데이터가 삭제되었습니다. 실제 API를 사용해주세요.'); 
+  return []; 
+};
 
 // 반복 일정 생성을 위한 헬퍼 함수
 const generateRecurringSchedules = (baseSchedule, count = 10) => {
@@ -115,8 +120,8 @@ const scheduleService = {
           
         return activities;
       } else {
-        // 실제 API 호출
-        const response = await api.get(`/projects/${projectId}/activities`, {
+        // 실제 API 호출 - 접두어 제거
+        const response = await api.get('/api/projects/' + projectId + '/activities', {
           params: { limit }
         });
         return response.data;
@@ -139,8 +144,8 @@ const scheduleService = {
         // 모의 데이터 사용
         return generateMockSchedules(year, month);
       } else {
-        // 실제 API 호출
-        const response = await api.get('/schedules', {
+        // 실제 API 호출 - 접두어 제거
+        const response = await api.get('/api/schedules', {
           params: { year, month }
         });
         return response.data;
@@ -182,15 +187,57 @@ const scheduleService = {
           // 일반 일정 생성
           const mockId = Math.floor(Math.random() * 1000) + 100;
           const createdSchedule = { ...scheduleData, id: mockId };
+          console.log('일정 생성 성공 (모의 데이터):', createdSchedule);
           return { mainSchedule: createdSchedule, schedules: [createdSchedule] };
         }
       } else {
         // 실제 API 호출 - 백엔드에서 처리하도록 함
-        const response = await api.post('/schedules', scheduleData);
+        const response = await api.post('/api/schedules', scheduleData);
+        console.log('일정 생성 성공:', response.data);
         return response.data;
       }
     } catch (error) {
-      console.error('일정 생성 중 오류:', error);
+      console.log('일정 생성 오류 발생:', error);
+      console.log('오류 응답 객체:', error.response);
+      
+      if (error.response) {
+        console.log('오류 상태 코드:', error.response.status);
+        console.log('오류 데이터:', error.response.data);
+        
+        // 409 Conflict - 일정 충돌
+        if (error.response.status === 409) {
+          console.log('409 충돌 오류 감지');
+          const errorMessage = error.response.data?.message || '해당 시간에 이미 일정이 존재합니다.';
+          const conflictDetails = error.response.data?.conflictSchedules || [];
+          console.log('오류 메시지:', errorMessage);
+          console.log('충돌 일정 상세:', conflictDetails);
+          
+          let detailedMessage = `일정 중복: ${errorMessage}`;
+          
+          if (conflictDetails.length > 0) {
+            const conflictNames = conflictDetails.map(s => `'${s.title}' (${s.startTime.substring(0, 5)}~${s.endTime.substring(0, 5)})`);
+            detailedMessage += `\n\n충돌 일정: ${conflictNames.join(', ')}`;
+            console.log('상세 오류 메시지 생성:', detailedMessage);
+          }
+          
+          throw new Error(detailedMessage);
+        }
+        
+        // 400 Bad Request - 유효성 오류
+        if (error.response.status === 400) {
+          const errorMessage = error.response.data?.message || '입력하신 일정 데이터가 유효하지 않습니다.';
+          throw new Error(`유효성 오류: ${errorMessage}`);
+        }
+
+        // 403 Forbidden - 권한 오류
+        if (error.response.status === 403) {
+          throw new Error('일정을 생성할 권한이 없습니다. 다시 로그인해주세요.');
+        }
+        
+        // 그 외 오류
+        throw new Error(error.response.data?.message || '알 수 없는 오류가 발생했습니다.');
+      }
+      
       throw error;
     }
   },
@@ -207,7 +254,7 @@ const scheduleService = {
         // 모의 데이터 업데이트 (실제로는 저장되지 않음)
         return { ...scheduleData, id: scheduleId };
       } else {
-        const response = await api.put(`/schedules/${scheduleId}`, scheduleData);
+        const response = await api.put(`/api/schedules/${scheduleId}`, scheduleData);
         return response.data;
       }
     } catch (error) {
@@ -228,7 +275,7 @@ const scheduleService = {
         // 모의 데이터 삭제 (실제로는 삭제되지 않음)
         return { success: true };
       } else {
-        const response = await api.delete(`/schedules/${scheduleId}`, {
+        const response = await api.delete(`/api/schedules/${scheduleId}`, {
           data: deleteOptions
         });
         return response.data;

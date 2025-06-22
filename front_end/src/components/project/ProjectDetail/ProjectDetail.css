@@ -1,0 +1,129 @@
+.project-detail {
+}
+
+.project-detail-header {
+  margin-bottom: 20px;
+}
+
+.project-detail .project-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.2em;
+}
+
+.project-detail .project-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  letter-spacing: 0.2em;
+}
+
+.project-detail .project-detail-row {
+  display: flex;
+}
+
+.project-detail .detail-label {
+  width: 120px;
+  font-weight: 500;
+  color: var(--main-bg-color);
+  flex-shrink: 0;
+}
+
+.project-detail .detail-value {
+  color: var(--main-bg-color);
+  flex: 1;
+}
+
+.project-detail .detail-value.description {
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+.project-detail-actions {
+  margin-top: 30px;
+  margin-right: -40px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.project-detail .btn-edit, .project-detail .btn-delete {
+  padding: 12px 30px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 1rem;
+}
+
+.project-detail .btn-edit {
+  border: 1px solid #B8D3CE;
+  background-color: white;
+  color: var(--main-bg-color);
+}
+
+.project-detail .btn-edit:hover {
+  filter: brightness(0.85);
+  transition: filter 0.2s ease-in-out;
+}
+
+.project-detail .btn-delete {
+  background-color: #E86C60;
+  color: white;
+  border: none;
+}
+
+.project-detail .btn-delete:hover {
+  filter: brightness(0.85);
+  transition: filter 0.2s ease-in-out;
+}
+
+.project-detail .progress-stats {
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.project-detail .completed-hours {
+  font-weight: 500;
+}
+
+.project-detail .progress-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.project-detail .progress-bar {
+  height: 10px;
+  background-color: #e9ecef;
+  border-radius: 5px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.project-detail .progress-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+}
+
+.project-detail .progress-text {
+  font-weight: 500;
+  min-width: 45px;
+  text-align: right;
+}
+
+.project-detail .remaining-days {
+}
+
+.project-detail .required-hours {
+  font-weight: 500;
+}
+
+.project-detail .project-detail-empty {
+  padding: 30px;
+  text-align: center;
+  color: #777;
+}

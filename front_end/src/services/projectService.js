@@ -1,8 +1,10 @@
 import api from './api';
-import projects from '../mocks/data/projects';
 
-// 캘린더 디자인 및 테스트를 위한 모의 데이터 사용 여부
-const USE_MOCK_DATA = true;
+// 목업 데이터 제거 - 실제 백엔드 API만 사용
+const USE_MOCK_DATA = false;
+
+// 목업용 빈 데이터 - 참조 오류 방지
+const projects = [];
 
 const projectService = {
   /**
@@ -16,7 +18,7 @@ const projectService = {
         // 모의 데이터 사용
         return projects;
       } else {
-        const response = await api.get('/projects');
+        const response = await api.get('/api/projects');
         return response.data;
       }
     } catch (error) {
@@ -49,7 +51,7 @@ const projectService = {
         projects.push(newProject);
         return newProject;
       } else {
-        const response = await api.post('/projects', projectData);
+        const response = await api.post('/api/projects', projectData);
         return response.data;
       }
     } catch (error) {
@@ -87,7 +89,7 @@ const projectService = {
           throw new Error('프로젝트를 찾을 수 없습니다.');
         }
       } else {
-        const response = await api.put(`/projects/${projectId}`, projectData);
+        const response = await api.put(`/api/projects/${projectId}`, projectData);
         return response.data;
       }
     } catch (error) {
@@ -115,12 +117,60 @@ const projectService = {
           throw new Error('프로젝트를 찾을 수 없습니다.');
         }
       } else {
-        const response = await api.delete(`/projects/${projectId}`);
+        const response = await api.delete(`/api/projects/${projectId}`);
         return response.data;
       }
     } catch (error) {
       console.error('프로젝트 삭제 중 오류:', error);
       throw error;
+    }
+  },
+  
+  /**
+   * 특정 프로젝트의 월별 통계 조회
+   * @param {number} projectId - 조회할 프로젝트 ID
+   * @param {number} year - 조회할 연도 
+   * @param {number} month - 조회할 월(1-12)
+   * @returns {Promise} 프로젝트의 월별 통계 정보
+   */
+  getProjectMonthlyStats: async (projectId, year, month) => {
+    try {
+      if (USE_MOCK_DATA) {
+        // 목업 데이터 사용 시 통계 정보 생성
+        console.log('목업 프로젝트 월별 통계 (백엔드 연동 전)');
+        
+        // 프로젝트 찾기
+        const project = projects.find(p => p.id === projectId);
+        
+        if (!project) {
+          throw new Error('프로젝트를 찾을 수 없습니다.');
+        }
+        
+        // 목업 통계 데이터 생성 (실제 데이터 아님)
+        return {
+          projectId: projectId,
+          year: year,
+          month: month,
+          completedHours: Math.floor(Math.random() * project.monthlyRequiredHours),
+          requiredHours: project.monthlyRequiredHours,
+          progressPercentage: Math.floor(Math.random() * 100)
+        };
+      } else {
+        const response = await api.get(`/api/projects/${projectId}/monthly-stats?year=${year}&month=${month}`);
+        return response.data;
+      }
+    } catch (error) {
+      console.error('프로젝트 월별 통계 조회 중 오류:', error);
+      
+      // 오류 발생 시 기본값 반환
+      return {
+        projectId: projectId,
+        year: year,
+        month: month,
+        completedHours: 0,
+        requiredHours: 0,
+        progressPercentage: 0
+      };
     }
   }
 };

@@ -10,7 +10,7 @@ const authService = {
    */
   signup: async (email, password, fullName) => {
     try {
-      const response = await api.post('/auth/signup', { email, password, fullName });
+      const response = await api.post('/api/auth/signup', { email, password, fullName });
       return response.data;
     } catch (error) {
       console.error('회원가입 중 오류:', error);
@@ -26,7 +26,7 @@ const authService = {
    */
   login: async (username, password) => {
     try {
-      const response = await api.post('/auth/login', { email: username, password });
+      const response = await api.post('/api/auth/login', { email: username, password });
       if (response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
@@ -46,7 +46,11 @@ const authService = {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
-    // api.post('/api/auth/logout');
+    // 백엔드에 로그아웃 통보 (토큰 무효화)
+    api.post('/api/auth/logout').catch(error => {
+      console.error('로그아웃 API 호출 중 오류:', error);
+      // 로그아웃은 로컬 스토리지 클리어가 중요하며, 서버 요청은 실패해도 사용자는 로그아웃됨
+    });
   },
 
   /**
@@ -68,7 +72,7 @@ const authService = {
         throw new Error('리프레시 토큰이 없습니다');
       }
       
-      const response = await api.post('/auth/refresh', { refreshToken });
+      const response = await api.post('/api/auth/refresh', { refreshToken });
       if (response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
       }
