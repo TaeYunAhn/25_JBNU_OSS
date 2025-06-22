@@ -78,9 +78,6 @@ const filterProjectsByDate = (projects, selectedDate) => {
   const today = new Date();
   
   return projects.filter(project => {
-    // 프로젝트가 이미 종료되었는지 확인
-    const isActive = project.endDate >= today.toISOString().split('T')[0];
-    
     // 프로젝트의 시작일과 종료일
     const projectStart = new Date(project.startDate);
     const projectEnd = new Date(project.endDate);
@@ -89,7 +86,8 @@ const filterProjectsByDate = (projects, selectedDate) => {
     const isInProjectPeriod = 
       (projectStart <= selectedDateObj) && (projectEnd >= selectedDateObj);
     
-    return isActive && isInProjectPeriod;
+    // 활성화 여부와 무관하게 해당 날짜에 포함된 프로젝트만 반환
+    return isInProjectPeriod;
   });
 };
 
@@ -229,13 +227,25 @@ const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel
     if (name.startsWith('repeat.')) {
       const repeatField = name.split('.')[1];
       
-      setFormData(prev => ({
-        ...prev,
-        repeat: {
-          ...prev.repeat,
-          [repeatField]: value
-        }
-      }));
+      if (repeatField === 'endType' && value === 'date') {
+        // endType이 'date'로 변경될 때 endDate가 비어있으면 현재 날짜로 초기화
+        setFormData(prev => ({
+          ...prev,
+          repeat: {
+            ...prev.repeat,
+            [repeatField]: value,
+            endDate: prev.repeat.endDate || formatDateYYYYMMDD(new Date())
+          }
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          repeat: {
+            ...prev.repeat,
+            [repeatField]: value
+          }
+        }));
+      }
       return;
     }
     
@@ -311,13 +321,14 @@ const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel
             // endType에 따라 불필요한 필드 제거
             if (repeatData.endType === 'date') {
               delete repeatData.endCount;
+              // 날짜가 비어있으면 현재 날짜로 설정
               if (!repeatData.endDate) {
-                delete repeatData.endDate; // endDate가 없으면 필드 자체를 제거
+                repeatData.endDate = formatDateYYYYMMDD(new Date());
               }
             } else if (repeatData.endType === 'count') {
               delete repeatData.endDate;
               if (!repeatData.endCount) {
-                delete repeatData.endCount;
+                repeatData.endCount = 10; // 설정되지 않은 경우 기본값 설정
               }
             } else if (repeatData.endType === 'never') {
               delete repeatData.endDate;

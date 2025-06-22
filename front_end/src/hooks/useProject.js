@@ -90,7 +90,13 @@ const useProject = () => {
     
     try {
       const newProject = await projectService.createProject(projectData);
-      setProjects(prev => [...prev, newProject]);
+      
+      // 로컬 상태와 캐시 모두 업데이트
+      const updatedProjects = [...(projectsCache || []), newProject];
+      projectsCache = updatedProjects;
+      lastFetchTime = Date.now();
+      setProjects(updatedProjects);
+      
       return { success: true, project: newProject };
     } catch (err) {
       const errorMsg = err.message || '프로젝트를 생성하는 중 오류가 발생했습니다.';
@@ -120,9 +126,14 @@ const useProject = () => {
     
     try {
       const updatedProject = await projectService.updateProject(projectId, projectData);
-      setProjects(prev => prev.map(project => 
+      
+      // 로컬 상태와 캐시 모두 업데이트
+      const updatedProjects = (projectsCache || []).map(project => 
         project.id === projectId ? updatedProject : project
-      ));
+      );
+      projectsCache = updatedProjects;
+      lastFetchTime = Date.now();
+      setProjects(updatedProjects);
       
       // 선택된 프로젝트가 업데이트된 경우 업데이트
       if (selectedProject && selectedProject.id === projectId) {
@@ -147,7 +158,12 @@ const useProject = () => {
     
     try {
       await projectService.deleteProject(projectId);
-      setProjects(prev => prev.filter(project => project.id !== projectId));
+      
+      // 로컬 상태와 캐시 모두 업데이트
+      const updatedProjects = (projectsCache || []).filter(project => project.id !== projectId);
+      projectsCache = updatedProjects;
+      lastFetchTime = Date.now();
+      setProjects(updatedProjects);
       
       // 선택된 프로젝트가 삭제된 경우 null로 설정
       if (selectedProject && selectedProject.id === projectId) {
