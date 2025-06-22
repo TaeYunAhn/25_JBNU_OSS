@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { formatDateKorean } from '../../../utils/dateUtils';
 import projectService from '../../../services/projectService';
 import './ProjectDetail.css';
+
+// 프로젝트 통계 캐시 객체 - 전역으로 사용하여 불필요한 API 호출 방지
+const statsCache = {};
+
+// 캐시 키 생성 함수
+const createCacheKey = (projectId, year, month) => `${projectId}-${year}-${month}`;
 
 /**
  * 프로젝트 상세 정보 컴포넌트
@@ -27,31 +33,89 @@ const ProjectDetail = ({
   const [projectStats, setProjectStats] = useState(null);
   const [loading, setLoading] = useState(false);
   
+  // API 요청 상태를 추적하는 ref
+  const fetchingRef = useRef(false);
+  // 마지막 업데이트된 캐시 키를 저장하는 ref
+  const lastCacheKeyRef = useRef(null);
+  
   // 프로젝트 통계 정보 가져오기
   useEffect(() => {
     if (!project || !project.id) return;
     
+    // 타이머 참조 변수 
+    let timeoutId = null;
+    
     const fetchProjectStats = async () => {
+      // 이미 요청 진행 중이면 스킵
+      if (fetchingRef.current || loading) return;
+      
+      // 선택한 연도와 월 사용, 부족할 경우 현재 날짜 사용
+      const date = new Date();
+      const year = selectedYear || date.getFullYear();
+      const month = selectedMonth || date.getMonth() + 1;
+      
+      // 캐시 키 생성
+      const cacheKey = createCacheKey(project.id, year, month);
+      
+      // 이미 동일한 데이터를 가져왔다면 중복 요청 방지
+      if (lastCacheKeyRef.current === cacheKey && projectStats) {
+        console.log(`캐시된 프로젝트 통계 정보 사용: ${cacheKey}`);
+        return;
+      }
+      
+      // 캐시에 데이터가 있으면 사용
+      if (statsCache[cacheKey]) {
+        console.log(`캐시에서 프로젝트 통계 정보 로드: ${cacheKey}`);
+        setProjectStats(statsCache[cacheKey]);
+        lastCacheKeyRef.current = cacheKey;
+        return;
+      }
+      
+      // 새 요청 시작 표시
+      fetchingRef.current = true;
       setLoading(true);
+      
       try {
-        // 선택한 연도와 월 사용, 부족할 경우 현재 날짜 사용
-        const date = new Date();
-        const year = selectedYear || date.getFullYear();
-        const month = selectedMonth || date.getMonth() + 1;
-        
-        console.log(`프로젝트 통계 정보 가져오기: 프로젝트 ID ${project.id}, 연도: ${year}, 월: ${month}, 새로고침 트리거: ${refreshTrigger}`);
+        console.log(`프로젝트 통계 정보 요청: 프로젝트 ID ${project.id}, 연도: ${year}, 월: ${month}`);
         
         const stats = await projectService.getProjectMonthlyStats(project.id, year, month);
+        
+        // 데이터 캐싱 및 상태 업데이트
+        statsCache[cacheKey] = stats;
         setProjectStats(stats);
+        lastCacheKeyRef.current = cacheKey;
       } catch (error) {
         console.error('프로젝트 통계 정보 불러오기 오류:', error);
       } finally {
         setLoading(false);
+        fetchingRef.current = false; // 요청 완료 표시
       }
     };
     
-    fetchProjectStats();
+    // 디바운스 처리 (300ms)
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(fetchProjectStats, 300);
+    
+    // 컴포넌트 언마운트 시 정리
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [project, selectedYear, selectedMonth, refreshTrigger]);
+  
+  // refreshTrigger가 변경되면 캐시 무효화 (필요한 경우에만)
+  useEffect(() => {
+    if (refreshTrigger > 0 && project?.id) {
+      // 현재 프로젝트의 캐시만 선택적으로 무효화
+      const keysToInvalidate = Object.keys(statsCache).filter(key => 
+        key.startsWith(`${project.id}-`)
+      );
+      
+      if (keysToInvalidate.length > 0) {
+        console.log('새로고침 트리거로 인해 통계 캐시 무효화:', keysToInvalidate);
+        keysToInvalidate.forEach(key => delete statsCache[key]);
+      }
+    }
+  }, [refreshTrigger, project?.id]);
   
   if (!project) {
     return <div className="project-detail-empty">프로젝트 정보를 불러올 수 없습니다.</div>;

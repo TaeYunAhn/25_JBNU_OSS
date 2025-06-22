@@ -41,8 +41,6 @@ button {
 }
 
 :root {
-  --primary-color: #4a6cf7;
-  --secondary-color: #f5a623;
   --danger-color: #e74c3c;
   --success-color: #2ecc71;
   --text-color: #333;

@@ -21,7 +21,7 @@ function Calendar() {
   const { year, month } = useParams();
   const navigate = useNavigate();
   const calendarRef = useRef(null);
-  const { logout } = useAuth();
+  const { user, logout: authLogout } = useAuth(); // user 객체 추가
   const { showToast } = useToast(); // 토스트 알림 훅 사용
   
   // 커스텀 훅 사용
@@ -297,6 +297,22 @@ function Calendar() {
     });
   };
   
+  // 프로젝트모달 페헤처
+  const handleProjectModalClose = () => {
+    setProjectModal({
+      isOpen: false,
+      mode: '',
+      projectId: null
+    });
+  };
+  
+  // 로그아웃 핸들러
+  const handleLogout = () => {
+    authLogout(); // 토큰 삭제
+    showToast('로그아웃되었습니다.', 'success');
+    navigate('/login'); // 로그인 페이지로 이동
+  };
+  
   // 날짜 변경 핸들러
   const handleMonthChange = (info) => {
     const newDate = info.view.currentStart;
@@ -314,12 +330,34 @@ function Calendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
     
-    // CSV로 내보내기
-    exportService.exportMonthlyActivityLog(year, month, 'csv')
-      .catch(error => {
-        console.error('활동일지 내보내기 실패:', error);
-        alert('활동일지 내보내기 중 오류가 발생했습니다.');
-      });
+    // 현재 년-월의 첫 날과 마지막 날
+    const firstDayOfMonth = new Date(year, month - 1, 1);
+    const lastDayOfMonth = new Date(year, month, 0);
+    
+    // 현재 월에 해당하는 프로젝트 필터링
+    const currentMonthProjects = projects.filter(project => {
+      const startDate = new Date(project.startDate);
+      const endDate = new Date(project.endDate);
+      return (startDate <= lastDayOfMonth) && (endDate >= firstDayOfMonth);
+    });
+    
+    // 현재 월에 해당하는 프로젝트가 없는 경우
+    if (currentMonthProjects.length === 0) {
+      showToast('해당 월에 진행 중인 프로젝트가 없습니다.', 'info');
+      return;
+    }
+    
+    // 진행률이 100% 미만인 프로젝트 필터링
+    const incompleteProjects = currentMonthProjects.filter(project => {
+      const progress = project.statistics?.progress || 0;
+      return progress < 100;
+    });
+    
+    if (incompleteProjects.length > 0) {
+      // 진행률이 100%가 아닌 프로젝트가 있는 경우
+      showToast('모든 프로젝트의 진행률이 100%가 되어야 내보내기가 가능합니다.', 'error');
+    }
+    // 진행률이 100%인 프로젝트만 있는 경우에는 아무 동작도 하지 않음
   };
   
   // 이전, 다음, 오늘 버튼 핸들러
@@ -364,10 +402,9 @@ function Calendar() {
         </div>
         <div className="user-info">
           <div className="user-name-container">
-            <div className="user-name">테스트 사용자님</div>
-            <div className="logout-button" onClick={logout}>로그아웃</div>
+            <div className="user-name">{user?.fullName || user?.username || '사용자'}님</div>
           </div>
-          <div className="user-avatar">U</div>
+          <button className="logout-button-visible" onClick={handleLogout}>로그아웃</button>
         </div>
       </div>
       
@@ -497,9 +534,6 @@ function Calendar() {
                     backgroundColor = '#4a6cf7'; // 프로젝트 기본 색상
                   }
                 }
-                
-                // 디버깅용 로그
-                console.log(`[일정 렌더링] ID: ${schedule.id}, 제목: ${schedule.title}`);
                 
                 return {
                   id: schedule.id.toString(),

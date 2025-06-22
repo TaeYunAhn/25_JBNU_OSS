@@ -167,34 +167,123 @@ const scheduleService = {
    */
   createSchedule: async (scheduleData) => {
     try {
+      console.log('원본 일정 데이터:', JSON.stringify(scheduleData, null, 2));
+      
+      // 반복 일정 정보 준비
+      let repeatData = null;
+      
+      if (scheduleData.repeat && scheduleData.repeat.enabled) {
+        const { repeat } = scheduleData;
+        
+        // days 배열이 있는 경우 JavaScript 요일(0-6)을 ISO 요일(1-7)로 변환
+        // 일요일: JS=0 → ISO=7, 나머지: JS=N → ISO=N
+        if (repeat.days && Array.isArray(repeat.days)) {
+          repeat.days = repeat.days.map(day => {
+            // 숫자로 변환 (문자열이 들어올 수 있음)
+            const dayNum = parseInt(day, 10);
+            // 일요일(0)은 7로 변환, 나머지는 그대로 + 1
+            const isoDay = dayNum === 0 ? 7 : dayNum + 1;
+            // 문자열로 반환
+            return String(isoDay);
+          });
+        }
+        
+        repeatData = {
+          enabled: repeat.enabled,
+          frequency: repeat.frequency,
+          interval: repeat.interval,
+          days: repeat.days || [],
+        };
+
+        // endType이 'date'인 경우에만 endDate 필드 추가
+        if (repeat.endType) {
+          repeatData.endType = repeat.endType;
+          
+          if (repeat.endType === 'date' && repeat.endDate) {
+            repeatData.endDate = repeat.endDate;
+          } else if (repeat.endType === 'count') {
+            repeatData.endCount = scheduleData.repeat.endCount || 10;
+          }
+        }
+      }
+      
+      // 최종 요청 데이터 생성
+      const requestData = {
+        title: scheduleData.title,
+        type: scheduleData.type,
+        projectId: scheduleData.projectId ? Number(scheduleData.projectId) : null,
+        content: scheduleData.content || "",
+        date: scheduleData.date,
+        startTime: scheduleData.startTime,
+        endTime: scheduleData.endTime,
+        // repeat 필드는 반복 일정이 활성화된 경우만 포함
+        ...(repeatData && { repeat: repeatData })
+      };
+      
+
       if (USE_MOCK_DATA) {
-        // 반복 설정이 있는지 확인
-        const hasRecurrence = scheduleData.repeat && 
-                            scheduleData.repeat.enabled && 
-                            scheduleData.repeat.frequency;
+        // 모의 데이터 모드에서는 기존 로직 유지
+        const hasRecurrence = requestData.repeat && 
+                            requestData.repeat.enabled && 
+                            requestData.repeat.frequency;
         
         if (hasRecurrence) {
-          // 반복 일정 생성
-          console.log('반복 일정 생성 (백엔드 연동 전)');
-          const recurringSchedules = generateRecurringSchedules(scheduleData);
-          
-          // 일정 목록과 최초 일정 객체 반환
+          console.log('반복 일정 생성 (모의 데이터)');
+          const recurringSchedules = generateRecurringSchedules(requestData);
           return {
             schedules: recurringSchedules,
             mainSchedule: recurringSchedules[0]
           };
         } else {
-          // 일반 일정 생성
           const mockId = Math.floor(Math.random() * 1000) + 100;
-          const createdSchedule = { ...scheduleData, id: mockId };
+          const createdSchedule = { ...requestData, id: mockId };
           console.log('일정 생성 성공 (모의 데이터):', createdSchedule);
           return { mainSchedule: createdSchedule, schedules: [createdSchedule] };
         }
       } else {
-        // 실제 API 호출 - 백엔드에서 처리하도록 함
-        const response = await api.post('/api/schedules', scheduleData);
-        console.log('일정 생성 성공:', response.data);
-        return response.data;
+        // 실제 API 호출 - 백엔드에서 반복 일정 처리
+        console.log('✅ 일정 생성 최종 요청 데이터:', JSON.stringify(requestData, null, 2));
+        console.log('요청 URL:', '/api/schedules');
+        
+        try {
+          // 요청 전 확인사항: repeat 객체가 백엔드 기대 형식에 맞는지 검증
+          if (requestData.repeat && requestData.repeat.enabled) {
+            console.log('반복 일정 형식 확인:', requestData.repeat);
+            console.log('days 타입:', Array.isArray(requestData.repeat.days) ? '배열' : typeof requestData.repeat.days);
+            console.log('days 값:', JSON.stringify(requestData.repeat.days));
+            
+            // 요일 배열이 있고 문자열이 아니면 문자열로 변환
+            if (Array.isArray(requestData.repeat.days)) {
+              requestData.repeat.days = requestData.repeat.days.map(day => String(day));
+            }
+          }
+          
+          const response = await api.post('/api/schedules', requestData, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          console.log('✅ 일정 생성 성공 - 응답 데이터:', response.data);
+          
+          // 백엔드 응답 형식에 맞게 반환
+          if (response.data.schedules && response.data.mainSchedule) {
+            return response.data;
+          } else {
+            // 백엔드가 단일 일정만 반환하는 경우
+            return {
+              mainSchedule: response.data,
+              schedules: [response.data]
+            };
+          }
+        } catch (error) {
+          console.log('❌ API 요청 실패:', error);
+          if (error.response) {
+            console.log('오류 상태 코드:', error.response.status);
+            console.log('오류 응답 데이터:', error.response.data);
+          }
+          throw error;
+        }
       }
     } catch (error) {
       console.log('일정 생성 오류 발생:', error);

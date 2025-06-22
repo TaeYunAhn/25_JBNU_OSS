@@ -148,7 +148,6 @@ function Login() {
         
         <div className="login-footer">
           <p>아직 Callog회원이 아니신가요? <Link to="/register" className="register-link">회원가입</Link></p>
-          <p className="test-account">테스트 계정: test / password</p>
         </div>
       </div>
     </div>
