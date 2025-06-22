@@ -125,31 +125,22 @@ const ProjectList = ({
   
   // 프로젝트 진행률 계산 (월별 통계 API 데이터 사용)
   const calculateProgress = (project) => {
-    if (projectStats[project.id]) {
+    // API에서 가져온 데이터가 있는 경우에만 진행률 표시
+    if (projectStats[project.id] && projectStats[project.id].progressPercentage !== undefined) {
       return projectStats[project.id].progressPercentage;
     }
     
-    // API 데이터가 없는 경우 기본 계산 방식 사용
-    const today = new Date();
-    const startDate = new Date(project.startDate);
-    const endDate = new Date(project.endDate);
-    
-    if (today < startDate) return 0;
-    if (today > endDate) return 100;
-    
-    const totalDuration = endDate - startDate;
-    const passedDuration = today - startDate;
-    const progress = Math.floor((passedDuration / totalDuration) * 100);
-    
-    return Math.min(100, Math.max(0, progress));
+    // API 데이터가 없는 경우 0% 반환
+    // 날짜 기반 계산을 하지 않고 여기서 방식을 바꾸지 않음
+    return 0;
   };
   
   // 프로젝트 완료 시간 조회 (월별 통계 API 데이터 사용)
   const getCompletedHours = (project) => {
-    if (projectStats[project.id]) {
+    if (projectStats[project.id] && projectStats[project.id].completedHours !== undefined) {
       return projectStats[project.id].completedHours;
     }
-    return 0; // API 데이터가 없는 경우 기본값
+    return '-'; // API 데이터가 없는 경우 '-'로 표시
   };
   
   return (

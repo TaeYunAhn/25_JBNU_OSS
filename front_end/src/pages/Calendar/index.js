@@ -21,7 +21,7 @@ function Calendar() {
   const { year, month } = useParams();
   const navigate = useNavigate();
   const calendarRef = useRef(null);
-  const { logout } = useAuth();
+  const { user, logout: authLogout } = useAuth(); // user 객체 추가
   const { showToast } = useToast(); // 토스트 알림 훅 사용
   
   // 커스텀 훅 사용
@@ -297,6 +297,22 @@ function Calendar() {
     });
   };
   
+  // 프로젝트모달 페헤처
+  const handleProjectModalClose = () => {
+    setProjectModal({
+      isOpen: false,
+      mode: '',
+      projectId: null
+    });
+  };
+  
+  // 로그아웃 핸들러
+  const handleLogout = () => {
+    authLogout(); // 토큰 삭제
+    showToast('로그아웃되었습니다.', 'success');
+    navigate('/login'); // 로그인 페이지로 이동
+  };
+  
   // 날짜 변경 핸들러
   const handleMonthChange = (info) => {
     const newDate = info.view.currentStart;
@@ -364,10 +380,9 @@ function Calendar() {
         </div>
         <div className="user-info">
           <div className="user-name-container">
-            <div className="user-name">테스트 사용자님</div>
-            <div className="logout-button" onClick={logout}>로그아웃</div>
+            <div className="user-name">{user?.fullName || user?.username || '사용자'}님</div>
           </div>
-          <div className="user-avatar">U</div>
+          <button className="logout-button-visible" onClick={handleLogout}>로그아웃</button>
         </div>
       </div>
       
