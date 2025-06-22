@@ -64,6 +64,36 @@ const DAY_OPTIONS = [
 ];
 
 /**
+ * 선택된 날짜에 포함되는 프로젝트만 필터링하는 함수
+ * @param {Array} projects - 프로젝트 목록
+ * @param {string} selectedDate - 선택된 날짜 (YYYY-MM-DD 형식)
+ * @returns {Array} 필터링된 프로젝트 목록
+ */
+const filterProjectsByDate = (projects, selectedDate) => {
+  if (!selectedDate || !projects || projects.length === 0) {
+    return [];
+  }
+  
+  const selectedDateObj = new Date(selectedDate);
+  const today = new Date();
+  
+  return projects.filter(project => {
+    // 프로젝트가 이미 종료되었는지 확인
+    const isActive = project.endDate >= today.toISOString().split('T')[0];
+    
+    // 프로젝트의 시작일과 종료일
+    const projectStart = new Date(project.startDate);
+    const projectEnd = new Date(project.endDate);
+    
+    // 선택된 날짜가 프로젝트 기간에 포함되는지 확인
+    const isInProjectPeriod = 
+      (projectStart <= selectedDateObj) && (projectEnd >= selectedDateObj);
+    
+    return isActive && isInProjectPeriod;
+  });
+};
+
+/**
  * 일정 생성 및 수정 폼 컴포넌트
  * @param {Object} props - 컴포넌트 속성
  * @param {Object} props.schedule - 수정시 일정 데이터
@@ -101,6 +131,27 @@ const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const { getProjectRecentActivities } = useSchedule();
   
+  // 날짜가 변경되면 프로젝트 선택 검증
+  useEffect(() => {
+    // 프로젝트가 선택되어 있고 일정 유형이 프로젝트인 경우
+    if (formData.projectId && formData.type === 'PROJECT') {
+      // 해당 날짜에 유효한 프로젝트만 필터링
+      const validProjects = filterProjectsByDate(projects, formData.date);
+      
+      // 현재 선택된 프로젝트가 필터링된 목록에 있는지 확인
+      const projectStillValid = validProjects.some(p => p.id === Number(formData.projectId) || p.id === formData.projectId);
+      
+      // 프로젝트가 유효하지 않으면 초기화
+      if (!projectStillValid) {
+        console.log('현재 선택된 프로젝트가 선택된 날짜에 유효하지 않음, 초기화함');
+        setFormData(prev => ({
+          ...prev,
+          projectId: ''
+        }));
+      }
+    }
+  }, [formData.date, projects, formData.projectId, formData.type]);
+
   // 수정 모드이거나 선택한 날짜가 있을 때 폼 데이터 초기화
   useEffect(() => {
     if (schedule) {
@@ -330,7 +381,7 @@ const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel
               required={formData.type === 'PROJECT'}
             >
               <option value="">프로젝트를 선택하세요</option>
-              {projects.map(project => (
+              {filterProjectsByDate(projects, formData.date).map(project => (
                 <option key={project.id} value={project.id}>
                   {project.name}
                 </option>
