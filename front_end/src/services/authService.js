@@ -72,9 +72,15 @@ const authService = {
         throw new Error('리프레시 토큰이 없습니다');
       }
       
-      const response = await api.post('/api/auth/refresh', { refreshToken });
+      // 백엔드가 기대하는 필드명(token)으로 전송
+      const response = await api.post('/api/auth/refresh', { token: refreshToken });
+      
       if (response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
+        // 새로 발급된 리프레시 토큰이 있으면 저장
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+        }
       }
       return response.data;
     } catch (error) {

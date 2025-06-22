@@ -300,8 +300,37 @@ const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel
     // 오류 초기화
     setApiError(null);
     
+    // 반복 설정 정리
+    const submitData = {
+      ...formData,
+      repeat: formData.repeat.enabled 
+        ? (() => {
+            // 반복이 활성화된 경우
+            const repeatData = { ...formData.repeat };
+            
+            // endType에 따라 불필요한 필드 제거
+            if (repeatData.endType === 'date') {
+              delete repeatData.endCount;
+              if (!repeatData.endDate) {
+                delete repeatData.endDate; // endDate가 없으면 필드 자체를 제거
+              }
+            } else if (repeatData.endType === 'count') {
+              delete repeatData.endDate;
+              if (!repeatData.endCount) {
+                delete repeatData.endCount;
+              }
+            } else if (repeatData.endType === 'never') {
+              delete repeatData.endDate;
+              delete repeatData.endCount;
+            }
+            
+            return repeatData;
+          })()
+        : undefined // 반복이 비활성화된 경우 repeat 객체 자체를 보내지 않음
+    };
+    
     // 유효성 검사
-    const validation = validateSchedule(formData);
+    const validation = validateSchedule(submitData);
     if (!validation.isValid) {
       setErrors(validation.errors);
       return;
@@ -309,7 +338,7 @@ const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel
     
     try {
       // 일정 제출
-      await onSubmit(formData);
+      await onSubmit(submitData);
     } catch (error) {
       console.error('일정 생성/수정 중 오류:', error);
       

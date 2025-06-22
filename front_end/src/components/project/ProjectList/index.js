@@ -69,19 +69,15 @@ const ProjectList = ({
   
   // 월별 프로젝트 통계 데이터 조회
   useEffect(() => {
-    console.log(`프로젝트 목록 통계 새로고침 시도: refreshTrigger =`, refreshTrigger);
     const fetchProjectStats = async () => {
       if (!projects || projects.length === 0 || !year || !month) {
-        console.log('통계 API 호출 건너뛰: 데이터 부족', { projects: projects?.length || 0, year, month });
         return;
       }
       
-      console.log(`프로젝트 통계 조회 시작: ${year}년 ${month}월, 프로젝트 ${projects.length}개, 트리거: ${refreshTrigger}`);
       setLoading(true);
       
       try {
         // 언제나 새로운 통계 데이터 가져오기
-        console.log('프로젝트 통계 새로 가져오기 시도');
         
         try {
           // 프로젝트 ID를 숫자로 변환하여 확실히 가져오기
@@ -90,15 +86,12 @@ const ProjectList = ({
             return projectService.getProjectMonthlyStats(projectId, year, month);
           });
           
-          console.log('프로젝트 통계 API 호출 중...', statsPromises.length);
           const results = await Promise.all(statsPromises);
-          console.log('프로젝트 통계 API 호출 결과 받음:', results.length);
           
           // 결과를 프로젝트 ID를 키로 하는 객체로 변환
           const newStats = {};
           results.forEach(stat => {
             if (stat && stat.projectId) {
-              console.log(`프로젝트 ${stat.projectId} 통계 갱신: 완료 ${stat.completedHours} / 요구 ${stat.requiredHours} 시간, 진도 ${stat.progressPercentage}%`);
               newStats[stat.projectId] = {
                 ...stat,
                 year: parseInt(year),
@@ -110,11 +103,11 @@ const ProjectList = ({
           // 이전 통계 대체하지 않고 완전히 새로 설정
           setProjectStats(newStats);
         } catch (fetchError) {
-          console.error('프로젝트 통계 API 호출 오류:', fetchError);
+          // console.error('프로젝트 통계 API 호출 오류:', fetchError);
           throw fetchError;
         }
       } catch (error) {
-        console.error('프로젝트 월별 통계 조회 중 오류:', error);
+        // console.error('프로젝트 월별 통계 조회 중 오류:', error);
       } finally {
         setLoading(false);
       }

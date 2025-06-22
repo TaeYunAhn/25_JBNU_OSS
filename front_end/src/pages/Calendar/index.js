@@ -535,9 +535,6 @@ function Calendar() {
                   }
                 }
                 
-                // 디버깅용 로그
-                console.log(`[일정 렌더링] ID: ${schedule.id}, 제목: ${schedule.title}`);
-                
                 return {
                   id: schedule.id.toString(),
                   title: schedule.title,
