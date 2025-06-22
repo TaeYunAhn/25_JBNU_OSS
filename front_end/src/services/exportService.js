@@ -10,7 +10,7 @@ const exportService = {
    */
   exportMonthlyReport: async (year, month, format = 'xlsx') => {
     try {
-      const response = await api.get('/export', {
+      const response = await api.get('/api/export', {
         params: { year, month, format },
         responseType: 'blob',  // 파일 다운로드를 위한 응답 타입 설정
       });

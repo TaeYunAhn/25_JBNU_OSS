@@ -389,7 +389,7 @@ const handleExport = () => {
       return;
     }
 
-    exportService.exportMonthlyActivityLog(yearNum, monthNum, 'xlsx')
+    exportService.exportMonthlyReport(yearNum, monthNum, 'xlsx')
       .then(() => {
         showToast('활동일지가 성공적으로 다운로드되었습니다.', 'success');
       })
