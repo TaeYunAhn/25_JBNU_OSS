@@ -196,7 +196,7 @@ const ScheduleModal = ({
       >
         {(currentMode === 'create' || currentMode === 'edit') ? (
           <ScheduleForm
-            schedule={currentMode === 'edit' ? schedule : (currentMode === 'create' && schedule ? schedule : null)}
+            schedule={currentMode === 'edit' ? schedule : null} // 생성 모드에서는 항상 null 전달
             initialDate={initialDate}
             projects={projects}
             onSubmit={handleSubmit}
