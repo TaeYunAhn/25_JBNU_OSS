@@ -1,6 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import projectService from '../services/projectService';
 import { validateProject } from '../utils/validationUtils';
+
+// 프로젝트 목록 캐싱을 위한 처리
+let projectsCache = null;
+let lastFetchTime = 0;
+const CACHE_TTL = 30000; // 30초 캐싱 유지 시간
 
 /**
  * 프로젝트 관리를 위한 커스텀 훅
@@ -12,15 +17,40 @@ const useProject = () => {
   const [error, setError] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   
-  // 모든 프로젝트 불러오기
-  const fetchProjects = useCallback(async () => {
+  // API 호출 중복 방지를 위한 상태 참조
+  const isFetchingRef = useRef(false);
+  
+  // 모든 프로젝트 불러오기 (캐싱 추가)
+  const fetchProjects = useCallback(async (forceRefresh = false) => {
+    // 이미 진행 중이면 스킵
+    if (isFetchingRef.current) {
+      console.log('프로젝트 목록 이미 가져오는 중... 중복 요청 방지');
+      return;
+    }
+    
+    // 현재 시각
+    const now = Date.now();
+    
+    // 캐싱된 데이터가 유효하고 강제 새로고침이 아니면 캐싱된 데이터 사용
+    if (!forceRefresh && projectsCache && now - lastFetchTime < CACHE_TTL) {
+      console.log('캐싱된 프로젝트 목록 사용, 마지막 갱신: ' + new Date(lastFetchTime).toLocaleTimeString());
+      setProjects(projectsCache);
+      return;
+    }
+    
     setLoading(true);
     setError(null);
+    isFetchingRef.current = true;
     
     try {
+      console.log('프로젝트 목록 API 요청');
       const data = await projectService.getMyProjects();
+      
       // 응답 데이터가 배열이 아닌 경우 빈 배열로 초기화
       if (Array.isArray(data)) {
+        // 데이터 업데이트 및 캐싱
+        projectsCache = data;
+        lastFetchTime = now;
         setProjects(data);
       } else {
         console.warn('프로젝트 데이터가 배열 형태가 아닙니다:', data);
@@ -33,6 +63,7 @@ const useProject = () => {
       setError('프로젝트를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   }, []);
   

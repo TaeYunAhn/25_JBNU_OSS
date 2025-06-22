@@ -22,7 +22,7 @@ function Calendar() {
   const { year, month } = useParams();
   const navigate = useNavigate();
   const calendarRef = useRef(null);
-  const { logout } = useAuth();
+  const { user, logout: authLogout } = useAuth(); // user 객체 추가
   const { showToast } = useToast(); // 토스트 알림 훅 사용
   
   // 커스텀 훅 사용
@@ -274,7 +274,8 @@ function Calendar() {
   };
   
   // 프로젝트 수정 버튼 클릭
-  const handleProjectEdit = (project) => {
+  const Modal
+  Edit = (project) => {
     setProjectModal({
       isOpen: true,
       mode: 'edit',
@@ -341,6 +342,22 @@ function Calendar() {
     });
   };
   
+  // 프로젝트모달 페헤처
+  const handleProjectModalClose = () => {
+    setProjectModal({
+      isOpen: false,
+      mode: '',
+      projectId: null
+    });
+  };
+  
+  // 로그아웃 핸들러
+  const handleLogout = () => {
+    authLogout(); // 토큰 삭제
+    showToast('로그아웃되었습니다.', 'success');
+    navigate('/login'); // 로그인 페이지로 이동
+  };
+  
   // 날짜 변경 핸들러
   const handleMonthChange = (info) => {
     const newDate = info.view.currentStart;
@@ -354,7 +371,7 @@ function Calendar() {
   };
   
   // 내보내기 핸들러
-  const handleExport = () => {
+const handleExport = () => {
     const yearNum = parseInt(year, 10);
     const monthNum = parseInt(month, 10);
 
@@ -373,25 +390,13 @@ function Calendar() {
       return;
     }
 
-    // 모든 활성 프로젝트가 100% 진행률을 달성했는지 확인
-    const allProjectsCompleted = activeProjectsInMonth.every(p => {
-        const stat = projectStats[p.id];
-        return stat && stat.progressPercentage >= 100;
-    });
-
-    if (allProjectsCompleted) {
-      // 엑셀로 내보내기
-      exportService.exportMonthlyActivityLog(yearNum, monthNum, 'xlsx')
-        .then(() => {
-          showToast('활동일지가 성공적으로 다운로드되었습니다.', 'success');
-        })
-        .catch(error => {
-          console.error('활동일지 내보내기 실패:', error);
-          showToast('활동일지 내보내기 중 오류가 발생했습니다.', 'error');
-        });
-    } else {
-      showToast('모든 프로젝트의 진행률이 100%가 되어야 내보내기가 가능합니다.', 'warning');
-    }
+    exportService.exportMonthlyActivityLog(yearNum, monthNum, 'xlsx')
+      .then(() => {
+        showToast('활동일지가 성공적으로 다운로드되었습니다.', 'success');
+      })
+      .catch((error) => {
+        showToast('활동일지 다운로드 중 오류가 발생했습니다.', 'error');
+      });
   };
   
   // 이전, 다음, 오늘 버튼 핸들러
@@ -436,10 +441,9 @@ function Calendar() {
         </div>
         <div className="user-info">
           <div className="user-name-container">
-            <div className="user-name">테스트 사용자님</div>
-            <div className="logout-button" onClick={logout}>로그아웃</div>
+            <div className="user-name">{user?.fullName || user?.username || '사용자'}님</div>
           </div>
-          <div className="user-avatar">U</div>
+          <button className="logout-button-visible" onClick={handleLogout}>로그아웃</button>
         </div>
       </div>
       
@@ -571,9 +575,6 @@ function Calendar() {
                     backgroundColor = '#4a6cf7'; // 프로젝트 기본 색상
                   }
                 }
-                
-                // 디버깅용 로그
-                console.log(`[일정 렌더링] ID: ${schedule.id}, 제목: ${schedule.title}`);
                 
                 return {
                   id: schedule.id.toString(),

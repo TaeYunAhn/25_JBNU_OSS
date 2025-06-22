@@ -30,23 +30,44 @@ api.interceptors.response.use(
     
     // 401 오류이고, 이미 재시도하지 않은 경우에만 토큰 갱신 시도
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
+      // 로그인 페이지로의 리다이렉트 방지
+      if (originalRequest.url.includes('/auth/')) {
+        return Promise.reject(error);
+      }
+      
       originalRequest._retry = true;
       
       try {
+        console.log('토큰 만료로 인한 갱신 시도...');
         // 토큰 갱신 시도
         const authService = (await import('./authService')).default;
         await authService.refreshToken();
         
         // 새 토큰으로 원래 요청 재시도
         const token = localStorage.getItem('accessToken');
-        originalRequest.headers['Authorization'] = `Bearer ${token}`;
+        if (!token) {
+          throw new Error('토큰을 가져오지 못했습니다.');
+        }
+        
+        // 헤더에 새 토큰 설정
+        originalRequest.headers = {
+          ...originalRequest.headers,
+          'Authorization': `Bearer ${token}`
+        };
+        
+        console.log('토큰 갱신 성공, 요청 재시도:', originalRequest.url);
         return api(originalRequest);
       } catch (refreshError) {
+        console.error('토큰 갱신 실패:', refreshError);
         // 토큰 갱신 실패 시 로그아웃 처리
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        
+        // 현재 경로가 로그인 페이지가 아닌 경우에만 리다이렉트
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }

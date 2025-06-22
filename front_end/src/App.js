@@ -19,19 +19,6 @@ const PrivateRoute = ({ children }) => {
 };
 
 function App() {
-  // 초기 로드 시 인증 상태 확인
-  useEffect(() => {
-    // 토큰의 유효성 검증 로직을 추가할 수 있습니다.
-    if (localStorage.getItem('accessToken')) {
-      console.log('토큰이 존재합니다. 인증 상태:', authService.isAuthenticated());
-      
-      // 필요한 경우 백엔드에 토큰 유효성 검증 요청을 보낼 수 있습니다.
-      // 백엔드에 토큰 검증 API가 있다면 여기서 호출하여 유효하지 않은 토큰을 정리합니다.
-    } else {
-      console.log('저장된 토큰이 없습니다.');
-    }
-  }, []);
-  
   return (
     <ToastProvider>
       <div className="app">

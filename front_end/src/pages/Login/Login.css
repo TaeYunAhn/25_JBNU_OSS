@@ -133,11 +133,21 @@
 
 /* 에러 메시지 스타일 수정 */
 .error-message {
-  color: #E86C60;
-  font-size: 0.8rem;
+  color: #d32f2f;
+  margin-top: 10px;
+  font-size: 14px;
   text-align: center;
-  margin-top: 0.5rem;
-  margin-bottom: 0;
+}
+
+.success-message {
+  color: #00AA94;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-size: 14px;
+  text-align: center;
+  padding: 8px 12px;
+  background-color: rgba(0, 170, 148, 0.1);
+  border-radius: 4px;
 }
 
 /* 에러 발생 시 입력창 스타일 */

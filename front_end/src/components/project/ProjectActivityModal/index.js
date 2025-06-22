@@ -61,11 +61,6 @@ const ProjectActivityModal = ({ isOpen, onClose, projectId, projectName }) => {
   // ESC 키 이벤트 비활성화 - 다른 모달과 충돌 막기
   // 사용자가 직접 X 버튼을 클릭하도록 유도
   
-
-  
-  // 디버깅 로그 추가
-  console.log('프로젝트 활동 모달 상태:', { isOpen, projectId, projectName });
-  console.log('활동 로딩 상태:', loading, '활동 개수:', recentActivities?.length || 0);
   
   // 모달이 명확하게 표시되도록 함
   // isOpen이 true일 때만 모달이 보이도록 설정
