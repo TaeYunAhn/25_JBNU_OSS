@@ -13,6 +13,7 @@ import useSchedule from '../../hooks/useSchedule';
 import useProject from '../../hooks/useProject';
 import useAuth from '../../hooks/useAuth';
 import exportService from '../../services/exportService';
+import projectService from '../../services/projectService';
 import { useToast } from '../../contexts/ToastContext';
 import './Calendar.css';
 import logoImage from '../../assets/images/logo_main.png';
@@ -58,6 +59,10 @@ function Calendar() {
     selectedProject: null
   });
   
+  // 프로젝트별 월별 통계 데이터 상태 관리
+  const [projectStats, setProjectStats] = useState({});
+  const [statsLoading, setStatsLoading] = useState(false);
+  
   // 일정 변경 시 프로젝트 상세 정보 새로고침을 위한 트리거 값
   const [scheduleRefreshTrigger, setScheduleRefreshTrigger] = useState(0);
   
@@ -80,6 +85,39 @@ function Calendar() {
       setCurrentDate(new Date(`${year}-${month.padStart(2, '0')}-01`));
     }
   }, [year, month]);
+  
+  // 월별 프로젝트 통계 데이터 조회
+  useEffect(() => {
+    const fetchProjectStats = async () => {
+      if (!projects || projects.length === 0 || !year || !month) {
+        return;
+      }
+
+      setStatsLoading(true);
+      try {
+        const statsPromises = projects.map(project => 
+          projectService.getProjectMonthlyStats(project.id, year, month)
+        );
+        
+        const results = await Promise.all(statsPromises);
+        
+        const newStats = {};
+        results.forEach(stat => {
+          if (stat && stat.projectId) {
+            newStats[stat.projectId] = stat;
+          }
+        });
+        setProjectStats(newStats);
+      } catch (error) {
+        console.error('프로젝트 월별 통계 조회 중 오류:', error);
+        setProjectStats({}); // 오류 발생 시 초기화
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchProjectStats();
+  }, [projects, year, month, scheduleRefreshTrigger]);
   
   // 일정 클릭 시 상세 정보 표시
   const handleEventClick = (info) => {
@@ -278,13 +316,19 @@ function Calendar() {
   // 프로젝트 삭제 핸들러
   const handleProjectDelete = async (projectId) => {
     try {
-      console.log('프로젝트 삭제:', projectId);
-      await deleteProject(projectId);
-      await fetchProjects(); // 프로젝트 목록 다시 로드
-      return true;
+      const result = await deleteProject(projectId); // useProject 훅의 deleteProject 호출
+      
+      if (result && result.success) {
+        showToast('프로젝트가 성공적으로 삭제되었습니다.', 'success');
+        closeProjectModal(); // 모달 닫기
+        await fetchProjects(); // 목록 새로고침 (선택적)
+      } else {
+        showToast('프로젝트 삭제에 실패했습니다.', 'error');
+      }
     } catch (error) {
       console.error('프로젝트 삭제 중 오류 발생:', error);
-      throw error; // 오류를 상위로 전파
+      const errorMsg = error.response?.data?.message || '프로젝트 삭제 중 오류가 발생했습니다.';
+      showToast(errorMsg, 'error');
     }
   };
   
@@ -311,15 +355,43 @@ function Calendar() {
   
   // 내보내기 핸들러
   const handleExport = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth() + 1;
-    
-    // CSV로 내보내기
-    exportService.exportMonthlyActivityLog(year, month, 'csv')
-      .catch(error => {
-        console.error('활동일지 내보내기 실패:', error);
-        alert('활동일지 내보내기 중 오류가 발생했습니다.');
-      });
+    const yearNum = parseInt(year, 10);
+    const monthNum = parseInt(month, 10);
+
+    // 현재 월에 해당하는 활성 프로젝트 필터링
+    const startOfMonth = new Date(yearNum, monthNum - 1, 1);
+    const endOfMonth = new Date(yearNum, monthNum, 0);
+
+    const activeProjectsInMonth = projects.filter(project => {
+      const projectStart = new Date(project.startDate);
+      const projectEnd = new Date(project.endDate);
+      return projectStart <= endOfMonth && projectEnd >= startOfMonth;
+    });
+
+    if (activeProjectsInMonth.length === 0) {
+      showToast('내보내기할 활성 프로젝트가 없습니다.', 'info');
+      return;
+    }
+
+    // 모든 활성 프로젝트가 100% 진행률을 달성했는지 확인
+    const allProjectsCompleted = activeProjectsInMonth.every(p => {
+        const stat = projectStats[p.id];
+        return stat && stat.progressPercentage >= 100;
+    });
+
+    if (allProjectsCompleted) {
+      // 엑셀로 내보내기
+      exportService.exportMonthlyActivityLog(yearNum, monthNum, 'xlsx')
+        .then(() => {
+          showToast('활동일지가 성공적으로 다운로드되었습니다.', 'success');
+        })
+        .catch(error => {
+          console.error('활동일지 내보내기 실패:', error);
+          showToast('활동일지 내보내기 중 오류가 발생했습니다.', 'error');
+        });
+    } else {
+      showToast('모든 프로젝트의 진행률이 100%가 되어야 내보내기가 가능합니다.', 'warning');
+    }
   };
   
   // 이전, 다음, 오늘 버튼 핸들러
@@ -392,13 +464,15 @@ function Calendar() {
             year={parseInt(year) || currentDate.getFullYear()}
             month={parseInt(month) || currentDate.getMonth() + 1}
             refreshTrigger={scheduleRefreshTrigger}
+            projectStats={projectStats}
+            loading={statsLoading || projectLoading}
           />
           
           <div className="export-section">
             <button 
               className="btn-export" 
               onClick={handleExport}
-              disabled={projectLoading || scheduleLoading}
+              disabled={projectLoading || scheduleLoading || statsLoading}
             >
               활동일지 내보내기
             </button>

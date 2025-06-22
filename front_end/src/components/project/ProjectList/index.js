@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { formatDateKorean } from '../../../utils/dateUtils';
-import projectService from '../../../services/projectService';
+// import projectService from '../../../services/projectService'; // 더 이상 필요 없음
 import './ProjectList.css';
 
 // YY.MM.DD 형식으로 날짜 포맷팅하는 함수
@@ -20,6 +20,8 @@ const formatShortDate = (dateString) => {
  * @param {Function} props.onAddProject - 프로젝트 추가 버튼 핸들러
  * @param {Function} props.onEditProject - 프로젝트 편집 버튼 핸들러
  * @param {number} props.selectedProjectId - 선택된 프로젝트 ID
+ * @param {Object} props.projectStats - 부모로부터 전달받는 통계 데이터
+ * @param {boolean} props.loading - 부모로부터 전달받는 로딩 상태
  * @returns {React.ReactElement}
  */
 const ProjectList = ({ 
@@ -30,11 +32,13 @@ const ProjectList = ({
   selectedProjectId,
   year,
   month,
-  refreshTrigger
+  projectStats,
+  loading
 }) => {
-  // 프로젝트별 월별 통계 데이터 상태 관리
-  const [projectStats, setProjectStats] = useState({});
-  const [loading, setLoading] = useState(false);
+  // 프로젝트별 월별 통계 데이터 상태 관리 - 부모 컴포넌트로 이동
+  // const [projectStats, setProjectStats] = useState({});
+  // const [loading, setLoading] = useState(false);
+
   // 활성화된 프로젝트와 선택된 년-월에 포함된 프로젝트만 필터링
   const filterActiveProjects = () => {
     if (!year || !month) {
@@ -67,7 +71,8 @@ const ProjectList = ({
   
   const activeProjects = filterActiveProjects();
   
-  // 월별 프로젝트 통계 데이터 조회
+  // 월별 프로젝트 통계 데이터 조회 - 부모 컴포넌트로 이동
+  /*
   useEffect(() => {
     console.log(`프로젝트 목록 통계 새로고침 시도: refreshTrigger =`, refreshTrigger);
     const fetchProjectStats = async () => {
@@ -122,10 +127,11 @@ const ProjectList = ({
     
     fetchProjectStats();
   }, [projects, year, month, refreshTrigger]);
+  */
   
   // 프로젝트 진행률 계산 (월별 통계 API 데이터 사용)
   const calculateProgress = (project) => {
-    if (projectStats[project.id]) {
+    if (projectStats && projectStats[project.id]) { // projectStats가 있는지 확인
       return projectStats[project.id].progressPercentage;
     }
     
@@ -146,7 +152,7 @@ const ProjectList = ({
   
   // 프로젝트 완료 시간 조회 (월별 통계 API 데이터 사용)
   const getCompletedHours = (project) => {
-    if (projectStats[project.id]) {
+    if (projectStats && projectStats[project.id]) { // projectStats가 있는지 확인
       return projectStats[project.id].completedHours;
     }
     return 0; // API 데이터가 없는 경우 기본값
@@ -158,7 +164,11 @@ const ProjectList = ({
         <h3>프로젝트 목록 ({year}년 {month}월)</h3>
       </div>
       
-      {activeProjects.length === 0 ? (
+      {loading ? ( // 로딩 상태 표시
+        <div className="loading-spinner">
+          <p>프로젝트 정보를 불러오는 중...</p>
+        </div>
+      ) : activeProjects.length === 0 ? (
         <div className="no-projects">
           <p>생성된 프로젝트가 없습니다.</p>
           <p>신규 프로젝트를 추가해주세요.</p>
