@@ -80,8 +80,8 @@ public class ExportService {
         createHeader(workbook, sheet);
         populateData(workbook, sheet, schedules);
 
-        // 컬럼 자동 크기 조정
-        for (int i = 0; i < 6; i++) {
+        // 컬럼 자동 크기 조정 (7개 컬럼으로 증가)
+        for (int i = 0; i < 7; i++) {
             sheet.autoSizeColumn(i);
         }
 
@@ -105,20 +105,21 @@ public class ExportService {
         Row headerRow1 = sheet.createRow(0);
         String[] headers1 = {"근무일자", "요일", "근무시간", "내용"};
         for (int i = 0; i < headers1.length; i++) {
-            Cell cell = headerRow1.createCell(i < 2 ? i : i + 2);
+            int colIndex = i < 2 ? i : (i == 2 ? i : i + 3); // 근무시간 열이 3개로 확장됨
+            Cell cell = headerRow1.createCell(colIndex);
             cell.setCellValue(headers1[i]);
             cell.setCellStyle(headerStyle);
         }
         
         // 셀 병합
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 2, 4)); // 근무시간
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 2, 5)); // 근무시간 (시작|~|종료|시간)
         sheet.addMergedRegion(new CellRangeAddress(0, 1, 0, 0)); // 근무일자
         sheet.addMergedRegion(new CellRangeAddress(0, 1, 1, 1)); // 요일
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 5, 5)); // 내용
+        sheet.addMergedRegion(new CellRangeAddress(0, 1, 6, 6)); // 내용
 
-        // 두 번째 행: 시작, 종료, 시간
+        // 두 번째 행: 시작, ~, 종료, 시간
         Row headerRow2 = sheet.createRow(1);
-        String[] headers2 = {"시작", "종료", "시간"};
+        String[] headers2 = {"시작", "~", "종료", "시간"};
         for (int i = 0; i < headers2.length; i++) {
             Cell cell = headerRow2.createCell(i + 2);
             cell.setCellValue(headers2[i]);
@@ -153,19 +154,24 @@ public class ExportService {
             startTimeCell.setCellValue(schedule.getStartTime().format(timeFormatter));
             startTimeCell.setCellStyle(dataStyle);
 
+            // "~" 구분자
+            Cell separatorCell = row.createCell(3);
+            separatorCell.setCellValue("~");
+            separatorCell.setCellStyle(dataStyle);
+
             // 종료 시간 (HH:mm 형식)
-            Cell endTimeCell = row.createCell(3);
+            Cell endTimeCell = row.createCell(4);
             endTimeCell.setCellValue(schedule.getEndTime().format(timeFormatter));
             endTimeCell.setCellStyle(dataStyle);
 
             // 시간 (정수 시간)
-            Cell durationCell = row.createCell(4);
+            Cell durationCell = row.createCell(5);
             long hours = Duration.between(schedule.getStartTime(), schedule.getEndTime()).toHours();
             durationCell.setCellValue(hours);
             durationCell.setCellStyle(dataStyle);
 
             // 내용
-            Cell contentCell = row.createCell(5);
+            Cell contentCell = row.createCell(6);
             contentCell.setCellValue(schedule.getContent());
             contentCell.setCellStyle(dataStyle);
         }
