@@ -78,9 +78,6 @@ const filterProjectsByDate = (projects, selectedDate) => {
   const today = new Date();
   
   return projects.filter(project => {
-    // 프로젝트가 이미 종료되었는지 확인
-    const isActive = project.endDate >= today.toISOString().split('T')[0];
-    
     // 프로젝트의 시작일과 종료일
     const projectStart = new Date(project.startDate);
     const projectEnd = new Date(project.endDate);
@@ -89,7 +86,8 @@ const filterProjectsByDate = (projects, selectedDate) => {
     const isInProjectPeriod = 
       (projectStart <= selectedDateObj) && (projectEnd >= selectedDateObj);
     
-    return isActive && isInProjectPeriod;
+    // 활성화 여부와 무관하게 해당 날짜에 포함된 프로젝트만 반환
+    return isInProjectPeriod;
   });
 };
 
