@@ -34,13 +34,33 @@ const ProjectList = ({
   // 프로젝트별 월별 통계 데이터 상태 관리
   const [projectStats, setProjectStats] = useState({});
   const [loading, setLoading] = useState(false);
-  // 활성화된 프로젝트만 필터링
+  // 활성화된 프로젝트와 선택된 년-월에 포함된 프로젝트만 필터링
   const filterActiveProjects = () => {
+    if (!year || !month) {
+      return []; // 년-월 정보가 없으면 빈 배열 반환
+    }
+    
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     
+    // 선택된 년-월의 첫날과 마지막 날
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0);
+    
     return projects.filter(project => {
-      return project.endDate >= todayStr;
+      // 프로젝트가 이미 종료되었는지 확인
+      const isActive = project.endDate >= todayStr;
+      
+      // 프로젝트의 시작일과 종료일
+      const projectStart = new Date(project.startDate);
+      const projectEnd = new Date(project.endDate);
+      
+      // 프로젝트 기간과 선택된 월이 겹치는지 확인
+      const isInMonth = 
+        (projectStart <= endOfMonth) && (projectEnd >= startOfMonth);
+      
+      // 활성화 상태이면서 해당 월에 포함된 프로젝트만 반환
+      return isActive && isInMonth;
     });
   };
   
