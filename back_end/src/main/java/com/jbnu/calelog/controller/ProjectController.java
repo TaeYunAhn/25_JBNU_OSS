@@ -31,6 +31,7 @@ import java.util.List;
  * @description 프로젝트 관리 API를 제공하는 컨트롤러
  *             활동 프로젝트의 생성, 조회, 수정, 삭제 및 최근 활동 조회 기능을 담당
  */
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/projects")
 @Tag(name = "Projects", description = "프로젝트 관리 API - 활동 프로젝트의 CRUD 및 통계 관리")

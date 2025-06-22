@@ -26,6 +26,7 @@ import java.util.List;
  * @description 일정 관리 API를 제공하는 컨트롤러
  *             단일 일정과 반복 일정의 생성, 조회, 수정, 삭제 및 시간 중복 검증 기능을 담당
  */
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/schedules")
 @Tag(name = "Schedules", description = "일정 관리 API - 단일/반복 일정 관리 및 시간 중복 검증")

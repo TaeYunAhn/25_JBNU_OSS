@@ -103,4 +103,21 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
      * @param userId 사용자 ID
      */
     void deleteByRecurringGroupIdAndUserId(String recurringGroupId, Long userId);
+
+    /**
+     * 엑셀 내보내기를 위한 활동 일정 조회
+     * @param userId 사용자 ID
+     * @param startDateTime 시작 날짜시간
+     * @param endDateTime 종료 날짜시간
+     * @param projectId 프로젝트 ID (선택사항, null이면 모든 프로젝트)
+     * @return 활동 일정 목록
+     */
+    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId " +
+           "AND s.startTime >= :startDateTime AND s.startTime < :endDateTime " +
+           "AND (:projectId IS NULL OR s.project.id = :projectId) " +
+           "ORDER BY s.startTime")
+    List<Schedule> findSchedulesForExport(@Param("userId") Long userId,
+                                          @Param("startDateTime") LocalDateTime startDateTime,
+                                          @Param("endDateTime") LocalDateTime endDateTime,
+                                          @Param("projectId") Long projectId);
 }
