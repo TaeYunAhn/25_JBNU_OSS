@@ -46,8 +46,8 @@
 
 .btn-secondary {
   background-color: white;
-  color: var(--primary-color);
-  border: 1px solid var(--primary-color);
+  color: var(--main-button-color);
+  border: 1px solid var(--main-button-color);
 }
 
 .btn-danger {
@@ -91,6 +91,6 @@
 
 .form-control:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: var(--main-button-color);
   box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
 }

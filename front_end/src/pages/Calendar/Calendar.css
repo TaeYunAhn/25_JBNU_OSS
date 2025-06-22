@@ -292,6 +292,56 @@
 .calendar-container .fc-event {
   cursor: pointer;
   border: none;
+  padding: 3px 5px;
+}
+
+/* 일정 내용 커스터마이징 */
+.fc-event-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.fc-event-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.fc-event-time {
+  font-size: 0.85em;
+  color: white !important;
+  margin-bottom: 2px;
+}
+
+.fc-event-description {
+  font-size: 0.85em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 주/일 뷰 특별 스타일 */
+.fc-timeGridWeek-view .fc-event,
+.fc-timeGridDay-view .fc-event {
+  padding: 5px 8px;
+  background-color: #ccc;
+  border: none;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+/* 격치는 일정 관련 경고 스타일 */
+.fc-event-overlap-warning {
+  position: relative;
+}
+
+.fc-event-overlap-warning::before {
+  content: '\26A0'; /* 경고 아이콘 */
+  position: absolute;
+  right: 5px;
+  top: 2px;
+  color: #e74c3c;
+  font-size: 1.2em;
 }
 
 /* 일정 유형별 색상 */

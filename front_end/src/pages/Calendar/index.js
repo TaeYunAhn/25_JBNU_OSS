@@ -507,7 +507,10 @@ function Calendar() {
                   start: schedule.start || `${schedule.date}T${schedule.startTime}`,
                   end: schedule.end || `${schedule.date}T${schedule.endTime}`,
                   backgroundColor: backgroundColor,
-                  classNames: schedule.type === 'PROJECT' ? ['project-event'] : ['inactive-event']
+                  classNames: schedule.type === 'PROJECT' ? ['project-event'] : ['inactive-event'],
+                  extendedProps: {
+                    content: schedule.content || ''
+                  }
                 };
               }) : []}
             selectable={true}
@@ -518,11 +521,58 @@ function Calendar() {
             }}
             eventContent={(arg) => {
               // 이벤트 내용 커스터마이징
+              const container = document.createElement('div');
+              container.className = 'fc-event-container';
+              
+              // 1. 제목 추가
               const title = document.createElement('div');
               title.className = 'fc-event-title';
+              title.style.fontWeight = 'bold';
               title.innerHTML = arg.event.title;
+              container.appendChild(title); // 제목 추가
               
-              return { domNodes: [title] };
+              // 2. 시간 표시
+              const time = document.createElement('div');
+              time.className = 'fc-event-time';
+              
+              // 시간 포맷팅 (달력 뷰에 따라 다르게 표시)
+              if (arg.view.type === 'dayGridMonth') {
+                // 월별 뷰에서는 시간 표시 안 함
+                time.style.display = 'none';
+              } else {
+                // 주/일 뷰에서 시간 형식 표시
+                const startDate = arg.event.start;
+                const endDate = arg.event.end || new Date(startDate.getTime() + 3600000);
+                
+                const startHours = startDate.getHours().toString().padStart(2, '0');
+                const startMinutes = startDate.getMinutes().toString().padStart(2, '0');
+                const endHours = endDate.getHours().toString().padStart(2, '0');
+                const endMinutes = endDate.getMinutes().toString().padStart(2, '0');
+                
+                time.innerHTML = `${startHours}:${startMinutes} - ${endHours}:${endMinutes}`;
+                time.style.fontSize = '0.85em';
+              }
+              container.appendChild(time); // 시간 추가
+              
+              // 3. 활동 내용 추가 (기본값 없음, 내용이 있는 경우에만 표시)
+              if (arg.event.extendedProps && arg.event.extendedProps.content) {
+                const content = arg.event.extendedProps.content.trim();
+                
+                // 내용이 비어있지 않고 '활동 내용이 없습니다' 같은 문구가 아닌 경우에만 표시
+                if (content !== '' && content !== '활동 내용이 없습니다.' && arg.view.type !== 'dayGridMonth') {
+                  const description = document.createElement('div');
+                  description.className = 'fc-event-description';
+                  description.style.fontSize = '0.85em';
+                  description.style.marginTop = '2px';
+                  description.style.whiteSpace = 'nowrap';
+                  description.style.overflow = 'hidden';
+                  description.style.textOverflow = 'ellipsis';
+                  description.innerHTML = content;
+                  container.appendChild(description); // 활동 내용 추가
+                }
+              }
+              
+              return { domNodes: [container] };
             }}
             eventClick={handleEventClick}
             select={handleDateSelect}
@@ -536,7 +586,7 @@ function Calendar() {
             slotMinTime="00:00:00"
             slotMaxTime="24:00:00"
             height="auto"
-            selectOverlap={true} // 기존 이벤트와 겹쳐도 선택 가능
+            selectOverlap={false} // 일정끼리 격치지 않도록 제한
             dayCellContent={(args) => {
               // 월별 뷰에서만 적용
               if (args.view.type === 'dayGridMonth') {
