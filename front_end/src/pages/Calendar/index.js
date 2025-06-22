@@ -274,8 +274,7 @@ function Calendar() {
   };
   
   // 프로젝트 수정 버튼 클릭
-  const Modal
-  Edit = (project) => {
+  const handleProjectEdit = (project) => {
     setProjectModal({
       isOpen: true,
       mode: 'edit',
