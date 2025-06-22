@@ -181,8 +181,8 @@ const scheduleService = {
           repeat.days = repeat.days.map(day => {
             // 숫자로 변환 (문자열이 들어올 수 있음)
             const dayNum = parseInt(day, 10);
-            // 일요일(0)은 7로 변환, 나머지는 그대로 + 1
-            const isoDay = dayNum === 0 ? 7 : dayNum + 1;
+            // 일요일(0)은 7로 변환, 나머지는 그대로
+            const isoDay = dayNum === 0 ? 7 : dayNum;
             // 문자열로 반환
             return String(isoDay);
           });
