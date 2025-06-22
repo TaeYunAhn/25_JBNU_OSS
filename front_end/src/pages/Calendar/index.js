@@ -39,6 +39,7 @@ function Calendar() {
     fetchProjects,
     createProject,
     updateProject,
+    deleteProject,
     isLoading: projectLoading 
   } = useProject();
   
@@ -212,25 +213,47 @@ function Calendar() {
     });
   };
   
+  // 프로젝트 클릭 핸들러 - 상세보기 모달 표시
+  const handleProjectClick = (projectId) => {
+    const clickedProject = projects.find(project => project.id === projectId);
+    if (clickedProject) {
+      setProjectModal({
+        isOpen: true,
+        mode: 'view',
+        selectedProject: clickedProject
+      });
+    }
+  };
+  
   // 프로젝트 제출 핸들러 (생성/수정)
   const handleProjectSubmit = async (projectData, projectId) => {
     try {
       if (projectId) {
-        // 기존 프로젝트 수정
+        console.log('프로젝트 수정:', projectData);
         await updateProject(projectId, projectData);
-        showToast(`'${projectData.name}' 프로젝트가 수정되었습니다.`, 'success');
-        closeProjectModal();
+        await fetchProjects(); // 프로젝트 목록 다시 로드
       } else {
-        // 새 프로젝트 생성
+        console.log('새 프로젝트 생성:', projectData);
         await createProject(projectData);
-        showToast(`'${projectData.name}' 프로젝트가 생성되었습니다.`, 'success');
-        closeProjectModal();
+        await fetchProjects(); // 프로젝트 목록 다시 로드
       }
+      return true;
     } catch (error) {
-      console.error('프로젝트 저장 실패:', error);
-      const errorMsg = error.message || `프로젝트 ${projectId ? '수정' : '생성'} 중 오류가 발생했습니다.`;
-      showToast(errorMsg, 'error');
-      // 오류 발생 시에도 모달은 닫지 않음 - 사용자가 오류를 수정할 기회 제공
+      console.error('프로젝트 저장 중 오류 발생:', error);
+      throw error; // 오류를 상위로 전파
+    }
+  };
+  
+  // 프로젝트 삭제 핸들러
+  const handleProjectDelete = async (projectId) => {
+    try {
+      console.log('프로젝트 삭제:', projectId);
+      await deleteProject(projectId);
+      await fetchProjects(); // 프로젝트 목록 다시 로드
+      return true;
+    } catch (error) {
+      console.error('프로젝트 삭제 중 오류 발생:', error);
+      throw error; // 오류를 상위로 전파
     }
   };
   
@@ -331,11 +354,12 @@ function Calendar() {
           
           <ProjectList 
             projects={projects}
-            onProjectClick={() => {}}
+            onProjectClick={handleProjectClick}
             onAddProject={handleAddProject}
             onEditProject={handleProjectEdit}
-            year={parseInt(year)}
-            month={parseInt(month)}
+            selectedProjectId={null}
+            year={parseInt(year) || currentDate.getFullYear()}
+            month={parseInt(month) || currentDate.getMonth() + 1}
           />
           
           <div className="export-section">
@@ -512,7 +536,10 @@ function Calendar() {
         mode={projectModal.mode}
         project={projectModal.selectedProject}
         onSubmit={handleProjectSubmit}
+        onDelete={handleProjectDelete}
         onClose={closeProjectModal}
+        selectedYear={parseInt(year)}
+        selectedMonth={parseInt(month)}
       />
     </div>
   );
