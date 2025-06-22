@@ -32,24 +32,31 @@ const CalendarToolbar = ({
     if (view === 'month') {
       return `${year}년 ${month}월`;
     } else if (view === 'week') {
-      // 주간 뷰의 시작일과 종료일 계산
+      // 주간 뷰의 시작일(일요일)과 종료일(토요일) 계산
+      // FullCalendar가 표시하는 주간 기간은 일요일부터 토요일까지
+      
+      // 현재 날짜가 있는 주의 일요일 계산
       const firstDay = new Date(currentDate);
-      const day = currentDate.getDay();
-      const diff = currentDate.getDate() - day + (day === 0 ? -6 : 1); // 주의 시작일 (월요일)
-      firstDay.setDate(diff);
+      const dayOfWeek = currentDate.getDay(); // 0(일요일)~6(토요일)
+      firstDay.setDate(currentDate.getDate() - dayOfWeek); // 현재 날짜가 속한 주의 일요일
       
+      // 해당 주의 토요일 계산
       const lastDay = new Date(firstDay);
-      lastDay.setDate(firstDay.getDate() + 6);
+      lastDay.setDate(firstDay.getDate() + 6); // 일요일 + 6일 = 토요일
       
+      const firstYear = firstDay.getFullYear();
+      const lastYear = lastDay.getFullYear();
       const firstMonth = firstDay.getMonth() + 1;
       const lastMonth = lastDay.getMonth() + 1;
       const firstDate = firstDay.getDate();
       const lastDate = lastDay.getDate();
       
-      if (firstMonth === lastMonth) {
-        return `${year}년 ${firstMonth}월 ${firstDate}일 - ${lastDate}일`;
+      if (firstYear !== lastYear) {
+        return `${firstYear}년 ${firstMonth}월 ${firstDate}일 - ${lastYear}년 ${lastMonth}월 ${lastDate}일`;
+      } else if (firstMonth === lastMonth) {
+        return `${firstYear}년 ${firstMonth}월 ${firstDate}일 - ${lastDate}일`;
       } else {
-        return `${year}년 ${firstMonth}월 ${firstDate}일 - ${lastMonth}월 ${lastDate}일`;
+        return `${firstYear}년 ${firstMonth}월 ${firstDate}일 - ${lastMonth}월 ${lastDate}일`;
       }
     } else if (view === 'day') {
       const date = currentDate.getDate();
