@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * @description 사용자 인증 관련 API를 제공하는 컨트롤러
  *             회원가입, 로그인, 토큰 갱신 기능을 담당
  */
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "사용자 인증 관리")
