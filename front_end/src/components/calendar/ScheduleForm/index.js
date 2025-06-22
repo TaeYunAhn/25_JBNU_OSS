@@ -102,9 +102,10 @@ const filterProjectsByDate = (projects, selectedDate) => {
  * @param {Function} props.onSubmit - 제출 핸들러
  * @param {Function} props.onCancel - 취소 핸들러
  * @param {Function} props.onProjectSelect - 프로젝트 선택 시 호출될 함수
+ * @param {string} props.apiError - API 오류 메시지
  * @returns {React.ReactElement}
  */
-const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel, onProjectSelect }) => {
+const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel, onProjectSelect, apiError: externalApiError }) => {
   // 기본 상태 초기화
   const [formData, setFormData] = useState({
     title: '',
@@ -117,7 +118,7 @@ const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel
     endTime: '10:00',
     repeat: {
       enabled: false,
-      frequency: 'daily',
+      frequency: '',
       interval: 1,
       days: [],
       endType: 'never',
@@ -128,8 +129,21 @@ const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel
   
   const [errors, setErrors] = useState({});
   const [submitDisabled, setSubmitDisabled] = useState(false);
+  const [apiError, setApiError] = useState(null); // API 오류 처리를 위한 상태
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const { getProjectRecentActivities } = useSchedule();
+  
+  // 외부에서 전달된 오류 상태 반영
+  useEffect(() => {
+    if (externalApiError) {
+      setApiError(externalApiError);
+      // 기존 오류 메시지 요소가 있다면 제거
+      const existingError = document.getElementById('force-error-message');
+      if (existingError) {
+        existingError.remove();
+      }
+    }
+  }, [externalApiError]);
   
   // 날짜가 변경되면 프로젝트 선택 검증
   useEffect(() => {
@@ -281,19 +295,36 @@ const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel
   };
   
   // 폼 제출 핸들러
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitDisabled(true);
+    // 오류 초기화
+    setApiError(null);
     
     // 유효성 검사
     const validation = validateSchedule(formData);
     if (!validation.isValid) {
       setErrors(validation.errors);
-      setSubmitDisabled(false);
       return;
     }
     
-    onSubmit(formData);
+    try {
+      // 일정 제출
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('일정 생성/수정 중 오류:', error);
+      
+      // 오류 메시지 추출
+      const errorMessage = error.message || '일정을 저장하는 중 오류가 발생했습니다.';
+      
+      // 오류 상태 설정 (토스트 알림은 상위 컴포넌트에서 처리)
+      if (errorMessage.includes('일정 중복') || errorMessage.includes('중복')) {
+        setApiError('해당 시간에 이미 일정이 존재합니다. 다른 시간을 선택해주세요.');
+      } else {
+        setApiError(errorMessage);
+      }
+      
+      return; // 함수 종료
+    }
   };
   
   return (
@@ -545,7 +576,7 @@ const ScheduleForm = ({ schedule, initialDate, projects = [], onSubmit, onCancel
         <button type="button" className="btn-cancel" onClick={onCancel}>
           취소
         </button>
-        <button type="submit" className="btn-primary" disabled={submitDisabled}>
+        <button type="submit" className="btn-primary">
           {schedule ? '수정' : '생성'}
         </button>
       </div>

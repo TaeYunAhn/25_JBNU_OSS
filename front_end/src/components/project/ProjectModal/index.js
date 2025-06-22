@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Modal from '../../common/Modal';
 import ProjectForm from '../ProjectForm';
+import { useToast } from '../../../contexts/ToastContext';
 import './ProjectModal.css';
 
 /**
@@ -20,15 +21,30 @@ const ProjectModal = ({
   onSubmit, 
   onClose 
 }) => {
+  const { showToast } = useToast();
+  const [formError, setFormError] = useState(null);
   // 모달 제목 결정
   const getModalTitle = () => {
     return mode === 'create' ? '프로젝트 추가' : '프로젝트 수정';
   };
   
   // 폼 제출 처리
-  const handleSubmit = (formData) => {
-    onSubmit(formData, project?.id);
-    onClose();
+  const handleSubmit = async (formData) => {
+    setFormError(null);
+    
+    try {
+      const result = await onSubmit(formData, project?.id);
+      const actionText = mode === 'create' ? '생성' : '수정';
+      showToast(`'${formData.name}' 프로젝트가 ${actionText}되었습니다.`, 'success');
+      onClose();
+      return result;
+    } catch (error) {
+      console.error('프로젝트 저장 중 오류 발생:', error);
+      const errorMsg = error.message || `프로젝트 ${mode === 'create' ? '생성' : '수정'} 중 오류가 발생했습니다.`;
+      setFormError(errorMsg);
+      showToast(errorMsg, 'error');
+      return null;
+    }
   };
   
   return (
@@ -42,6 +58,7 @@ const ProjectModal = ({
         project={mode === 'edit' ? project : null}
         onSubmit={handleSubmit}
         onCancel={onClose}
+        apiError={formError}
       />
     </Modal>
   );

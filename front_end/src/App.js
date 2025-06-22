@@ -5,6 +5,7 @@ import Calendar from './pages/Calendar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import authService from './services/authService';
+import { ToastProvider } from './contexts/ToastContext';
 import './App.css';
 
 // 백엔드 연동 인증 확인 함수
@@ -32,36 +33,38 @@ function App() {
   }, []);
   
   return (
-    <div className="app">
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route 
-          path="/" 
-          element={
-            <PrivateRoute>
-              <Home />
-            </PrivateRoute>
-          } 
-        />
-        {/* 백엔드 연동 완료로 인증 요구 적용 */}
-        <Route 
-          path="/calendar/:year/:month" 
-          element={
-            <PrivateRoute>
-              <Calendar />
-            </PrivateRoute>
-          } 
-        />
-        {/* 백엔드 개발 중 테스트용 코드
-        <Route 
-          path="/calendar/:year/:month" 
-          element={<Calendar />}
-        />
-        */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </div>
+    <ToastProvider>
+      <div className="app">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route 
+            path="/" 
+            element={
+              <PrivateRoute>
+                <Home />
+              </PrivateRoute>
+            } 
+          />
+          {/* 백엔드 연동 완료로 인증 요구 적용 */}
+          <Route 
+            path="/calendar/:year/:month" 
+            element={
+              <PrivateRoute>
+                <Calendar />
+              </PrivateRoute>
+            } 
+          />
+          {/* 백엔드 개발 중 테스트용 코드
+          <Route 
+            path="/calendar/:year/:month" 
+            element={<Calendar />}
+          />
+          */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
+    </ToastProvider>
   );
 }
 

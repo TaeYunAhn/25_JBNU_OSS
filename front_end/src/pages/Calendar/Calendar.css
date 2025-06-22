@@ -321,6 +321,7 @@
 .fc-daygrid-dot-event .fc-event-title {
   color: white !important;
   font-weight: 500 !important;
+  height: 20px;
 }
 
 /* 월별 뷰에서 시간 숨기기 */

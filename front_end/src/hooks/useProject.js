@@ -49,9 +49,12 @@ const useProject = () => {
     // 유효성 검사
     const validation = validateProject(projectData);
     if (!validation.isValid) {
-      setError('프로젝트 정보가 유효하지 않습니다.');
+      const errorMsg = '프로젝트 정보가 유효하지 않습니다.';
+      setError(errorMsg);
       setLoading(false);
-      return { success: false, errors: validation.errors };
+      const err = new Error(errorMsg);
+      err.validationErrors = validation.errors;
+      throw err;
     }
     
     try {
@@ -59,9 +62,10 @@ const useProject = () => {
       setProjects(prev => [...prev, newProject]);
       return { success: true, project: newProject };
     } catch (err) {
-      setError('프로젝트를 생성하는 중 오류가 발생했습니다.');
-      console.error(err);
-      return { success: false, error: err.message };
+      const errorMsg = err.message || '프로젝트를 생성하는 중 오류가 발생했습니다.';
+      setError(errorMsg);
+      console.error('프로젝트 생성 오류:', err);
+      throw err; // 오류를 다시 상위로 전파하여 컴포넌트에서 토스트 알림 처리 가능하도록 함
     } finally {
       setLoading(false);
     }
@@ -75,9 +79,12 @@ const useProject = () => {
     // 유효성 검사
     const validation = validateProject(projectData);
     if (!validation.isValid) {
-      setError('프로젝트 정보가 유효하지 않습니다.');
+      const errorMsg = '프로젝트 정보가 유효하지 않습니다.';
+      setError(errorMsg);
       setLoading(false);
-      return { success: false, errors: validation.errors };
+      const err = new Error(errorMsg);
+      err.validationErrors = validation.errors;
+      throw err;
     }
     
     try {
@@ -93,9 +100,10 @@ const useProject = () => {
       
       return { success: true, project: updatedProject };
     } catch (err) {
-      setError('프로젝트를 수정하는 중 오류가 발생했습니다.');
-      console.error(err);
-      return { success: false, error: err.message };
+      const errorMsg = err.message || '프로젝트를 수정하는 중 오류가 발생했습니다.';
+      setError(errorMsg);
+      console.error('프로젝트 수정 오류:', err);
+      throw err; // 오류 전파하여 토스트 알림 처리 가능하도록 함
     } finally {
       setLoading(false);
     }
@@ -117,9 +125,10 @@ const useProject = () => {
       
       return { success: true };
     } catch (err) {
-      setError('프로젝트를 삭제하는 중 오류가 발생했습니다.');
-      console.error(err);
-      return { success: false, error: err.message };
+      const errorMsg = err.message || '프로젝트를 삭제하는 중 오류가 발생했습니다.';
+      setError(errorMsg);
+      console.error('프로젝트 삭제 오류:', err);
+      throw err; // 오류 전파하여 토스트 알림 처리 가능하도록 함
     } finally {
       setLoading(false);
     }

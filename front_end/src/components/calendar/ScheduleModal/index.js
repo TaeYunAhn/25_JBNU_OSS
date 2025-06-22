@@ -4,6 +4,7 @@ import ScheduleForm from '../ScheduleForm';
 import ScheduleDetail from '../ScheduleDetail';
 import ProjectActivityModal from '../../project/ProjectActivityModal';
 import useSchedule from '../../../hooks/useSchedule';
+import { useToast } from '../../../contexts/ToastContext';
 import './ScheduleModal.css';
 
 /**
@@ -29,7 +30,9 @@ const ScheduleModal = ({
   onDelete,
   onClose
 }) => {
+  const { showToast } = useToast(); // 토스트 알림 사용
   const [currentMode, setCurrentMode] = useState(mode);
+  const [formError, setFormError] = useState(null); // 오류 상태 추가
   
   // 프로젝트 활동 모달 관련 상태
   const [selectedProject, setSelectedProject] = useState(null);
@@ -64,9 +67,45 @@ const ScheduleModal = ({
   };
   
   // 폼 제출 처리
-  const handleSubmit = (formData) => {
-    onSubmit(formData, schedule?.id);
-    onClose();
+  const handleSubmit = async (formData) => {
+    console.log('폼 제출 시작', formData);
+    // 오류 상태 초기화
+    setFormError(null);
+    
+    try {
+      console.log('부모 onSubmit 호출 시작');
+      await onSubmit(formData, schedule?.id);
+      console.log('부모 onSubmit 호출 성공');
+      onClose(); // 성공 시에만 모달 닫기
+    } catch (error) {
+      console.error('일정 제출 실패:', error);
+      console.log('오류 내용:', error.message);
+      
+      // 오류 메시지 추출
+      let errorMessage = error.message || '일정 저장중 알 수 없는 오류가 발생했습니다.';
+      console.log('추출된 오류 메시지:', errorMessage);
+      
+      // 충돌 일정 확인
+      if (errorMessage.includes('일정 중복') || errorMessage.includes('이미 일정이 존재합니다') || errorMessage.includes('중복')) {
+        console.log('충돌 일정 감지됨');
+        // 상세한 오류 메시지 한글화
+        if (errorMessage.includes('\n\n충돌 일정:')) {
+          const mainError = errorMessage.split('\n\n')[0].replace('일정 중복: ', '');
+          const conflictDetails = errorMessage.split('\n\n')[1];
+          console.log('충돌 상세 정보:', conflictDetails);
+          errorMessage = `해당 시간에 이미 일정이 존재합니다. (${conflictDetails})`;
+        } else {
+          errorMessage = '해당 시간에 이미 일정이 존재합니다. 다른 시간을 선택해주세요.';
+        }
+      }
+      
+      // 토스트 알림 표시 - 모달에서 바로 표시 (크고 딩기게)
+      showToast(errorMessage, 'error');
+      
+      // 펼 오류 상태 업데이트
+      setFormError(errorMessage);
+      console.log('최종 오류 메시지 설정:', errorMessage);
+    }
   };
   
   // 폼 취소 처리
@@ -81,10 +120,16 @@ const ScheduleModal = ({
   };
   
   // 삭제 처리
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm('정말로 이 일정을 삭제하시겠습니까?')) {
-      onDelete(schedule.id);
-      onClose();
+      try {
+        await onDelete(schedule.id);
+        onClose(); // 성공 시에만 모달 닫기
+      } catch (error) {
+        console.error('일정 삭제 오류:', error);
+        const errorMsg = error.message || '일정 삭제 중 오류가 발생했습니다.';
+        showToast(errorMsg, 'error');
+      }
     }
   };
   
@@ -157,6 +202,7 @@ const ScheduleModal = ({
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             onProjectSelect={handleOpenActivityModal}
+            apiError={formError} // 오류 상태 전달
           />
         ) : (
           <ScheduleDetail

@@ -22,9 +22,10 @@ const PROJECT_COLORS = [
  * @param {Object} props.project - 수정할 프로젝트 데이터 (생성 시 null)
  * @param {Function} props.onSubmit - 폼 제출 핸들러
  * @param {Function} props.onCancel - 취소 버튼 핸들러
+ * @param {string} props.apiError - API 오류 메시지 (백엔드 API 호출 실패시)
  * @returns {React.ReactElement}
  */
-const ProjectForm = ({ project, onSubmit, onCancel }) => {
+const ProjectForm = ({ project, onSubmit, onCancel, apiError }) => {
   // 기본 상태 초기화
   const [formData, setFormData] = useState({
     name: '',
@@ -36,6 +37,14 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
   
   const [errors, setErrors] = useState({});
   const [submitDisabled, setSubmitDisabled] = useState(false);
+  const [internalApiError, setInternalApiError] = useState(null);
+  
+  // 외부에서 전달된 API 오류 상태 반영
+  useEffect(() => {
+    if (apiError) {
+      setInternalApiError(apiError);
+    }
+  }, [apiError]);
   
   // 수정 모드일 때 폼 데이터 초기화
   useEffect(() => {
@@ -77,9 +86,10 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
   };
   
   // 폼 제출 핸들러
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitDisabled(true);
+    setInternalApiError(null);
     
     // 유효성 검사
     const validation = validateProject(formData);
@@ -89,11 +99,48 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
       return;
     }
     
-    onSubmit(formData);
+    try {
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('프로젝트 저장 중 오류:', error);
+      setInternalApiError(error.message || '프로젝트를 저장하는 중 오류가 발생했습니다.');
+      setSubmitDisabled(false);
+    }
   };
   
   return (
     <form className="project-form" onSubmit={handleSubmit}>
+      {internalApiError && (
+        <div className="error-alert" style={{
+          backgroundColor: '#f8d7da',
+          color: '#721c24', 
+          padding: '15px',
+          marginBottom: '15px',
+          borderRadius: '5px',
+          border: '1px solid #f5c6cb',
+          fontWeight: 'bold',
+          fontSize: '16px',
+          position: 'relative',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div className="error-message">{internalApiError}</div>
+          <button 
+            type="button" 
+            className="error-close-btn" 
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontSize: '20px',
+              cursor: 'pointer'
+            }}
+            onClick={() => setInternalApiError(null)}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <div className="form-group">
         <label htmlFor="name">프로젝트 이름 *</label>
         <input

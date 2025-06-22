@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -13,6 +13,7 @@ import useSchedule from '../../hooks/useSchedule';
 import useProject from '../../hooks/useProject';
 import useAuth from '../../hooks/useAuth';
 import exportService from '../../services/exportService';
+import { useToast } from '../../contexts/ToastContext';
 import './Calendar.css';
 import logoImage from '../../assets/images/logo_main.png';
 
@@ -21,6 +22,7 @@ function Calendar() {
   const navigate = useNavigate();
   const calendarRef = useRef(null);
   const { logout } = useAuth();
+  const { showToast } = useToast(); // 토스트 알림 훅 사용
   
   // 커스텀 훅 사용
   const { 
@@ -130,41 +132,57 @@ function Calendar() {
   };
   
   // 일정 제출 핸들러 (생성/수정)
-  const handleScheduleSubmit = (scheduleData, scheduleId) => {
-    if (scheduleId) {
-      // 기존 일정 수정
-      updateSchedule(scheduleId, scheduleData)
-        .then(() => {
-          closeScheduleModal();
-        })
-        .catch(error => {
-          console.error('일정 수정 실패:', error);
-          alert('일정 수정 중 오류가 발생했습니다.');
-        });
-    } else {
-      // 새 일정 생성
-      createSchedule(scheduleData)
-        .then(() => {
-          closeScheduleModal();
-        })
-        .catch(error => {
-          console.error('일정 생성 실패:', error);
-          alert('일정 생성 중 오류가 발생했습니다.');
-        });
+  const handleScheduleSubmit = useCallback(async (scheduleData, scheduleId) => {
+    console.log('일정 제출 핸들러 호출됨:', { scheduleData, scheduleId });
+    try {
+      if (scheduleId) {
+        console.log('기존 일정 수정 시도...');
+        // 기존 일정 수정
+        const result = await updateSchedule(scheduleId, scheduleData);
+        console.log('일정 수정 결과:', result);
+        // 성공 시 토스트 메시지 표시
+        if (result && result.success) {
+          showToast(`'${scheduleData.title}' 일정이 수정되었습니다.`, 'success');
+        }
+        return result; // 성공/실패 정보 반환
+      } else {
+        console.log('새 일정 생성 시도...');
+        // 새 일정 생성
+        const result = await createSchedule(scheduleData);
+        console.log('일정 생성 결과:', result);
+        // 성공 시 토스트 메시지 표시
+        if (result && result.success) {
+          showToast(`'${scheduleData.title}' 일정이 생성되었습니다.`, 'success');
+        }
+        return result; // 성공/실패 정보 반환
+      }
+    } catch (error) {
+      console.error('일정 저장 중 오류 발생:', error);
+      // 오류 시 토스트 메시지 표시
+      const errorMsg = error.message || '일정 저장 중 오류가 발생했습니다.';
+      showToast(errorMsg, 'error');
+      throw error; // 오류를 호출자에게 전파
     }
-  };
+  }, [updateSchedule, createSchedule, showToast]);
   
   // 일정 삭제 핸들러
-  const handleScheduleDelete = (scheduleId) => {
-    deleteSchedule(scheduleId)
-      .then(() => {
-        closeScheduleModal();
-      })
-      .catch(error => {
-        console.error('일정 삭제 실패:', error);
-        alert('일정 삭제 중 오류가 발생했습니다.');
-      });
-  };
+  const handleScheduleDelete = useCallback(async (scheduleId) => {
+    if (window.confirm('정말 이 일정을 삭제하시겠습니까?')) {
+      try {
+        // 삭제 전에 일정 정보 가져오기 (제목 표시용)
+        const targetSchedule = schedules.find(s => s.id === scheduleId);
+        const scheduleName = targetSchedule ? targetSchedule.title : '선택한 일정';
+        
+        const result = await deleteSchedule(scheduleId);
+        if (result && result.success) {
+          showToast(`'${scheduleName}' 일정이 삭제되었습니다.`, 'success');
+        }
+      } catch (error) {
+        console.error('일정 삭제 중 오류 발생:', error);
+        showToast('일정 삭제 중 오류가 발생했습니다.', 'error');
+      }
+    }
+  }, [deleteSchedule, schedules, showToast]);
   
   // 일정 모달 닫기
   const closeScheduleModal = () => {
@@ -195,27 +213,24 @@ function Calendar() {
   };
   
   // 프로젝트 제출 핸들러 (생성/수정)
-  const handleProjectSubmit = (projectData, projectId) => {
-    if (projectId) {
-      // 기존 프로젝트 수정
-      updateProject(projectId, projectData)
-        .then(() => {
-          closeProjectModal();
-        })
-        .catch(error => {
-          console.error('프로젝트 수정 실패:', error);
-          alert('프로젝트 수정 중 오류가 발생했습니다.');
-        });
-    } else {
-      // 새 프로젝트 생성
-      createProject(projectData)
-        .then(() => {
-          closeProjectModal();
-        })
-        .catch(error => {
-          console.error('프로젝트 생성 실패:', error);
-          alert('프로젝트 생성 중 오류가 발생했습니다.');
-        });
+  const handleProjectSubmit = async (projectData, projectId) => {
+    try {
+      if (projectId) {
+        // 기존 프로젝트 수정
+        await updateProject(projectId, projectData);
+        showToast(`'${projectData.name}' 프로젝트가 수정되었습니다.`, 'success');
+        closeProjectModal();
+      } else {
+        // 새 프로젝트 생성
+        await createProject(projectData);
+        showToast(`'${projectData.name}' 프로젝트가 생성되었습니다.`, 'success');
+        closeProjectModal();
+      }
+    } catch (error) {
+      console.error('프로젝트 저장 실패:', error);
+      const errorMsg = error.message || `프로젝트 ${projectId ? '수정' : '생성'} 중 오류가 발생했습니다.`;
+      showToast(errorMsg, 'error');
+      // 오류 발생 시에도 모달은 닫지 않음 - 사용자가 오류를 수정할 기회 제공
     }
   };
   
