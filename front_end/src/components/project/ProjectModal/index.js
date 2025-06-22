@@ -31,6 +31,7 @@ const ProjectModal = ({
   const { showToast } = useToast();
   const [currentMode, setCurrentMode] = useState(mode);
   const [formError, setFormError] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   // 모달 모드 상태 업데이트
   useEffect(() => {
@@ -63,6 +64,8 @@ const ProjectModal = ({
       await onSubmit(formData, project?.id);
       const actionText = currentMode === 'create' ? '생성' : '수정';
       showToast(`'${formData.name}' 프로젝트가 ${actionText}되었습니다.`, 'success');
+      // 폼 제출 후 새로고침 트리거 값 증가
+      setRefreshTrigger(prev => prev + 1);
       onClose();
     } catch (error) {
       console.error('프로젝트 저장 중 오류 발생:', error);
@@ -113,14 +116,17 @@ const ProjectModal = ({
           apiError={formError}
         />
       ) : (
-        <ProjectDetail
-          project={project}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onClose={onClose}
-          selectedYear={selectedYear}
-          selectedMonth={selectedMonth}
-        />
+        currentMode === 'view' && project && (
+          <ProjectDetail 
+            project={project}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onClose={onClose}
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+            refreshTrigger={refreshTrigger}
+          />
+        )
       )}
     </Modal>
   );

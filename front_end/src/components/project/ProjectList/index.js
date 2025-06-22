@@ -29,7 +29,8 @@ const ProjectList = ({
   onEditProject, 
   selectedProjectId,
   year,
-  month
+  month,
+  refreshTrigger
 }) => {
   // 프로젝트별 월별 통계 데이터 상태 관리
   const [projectStats, setProjectStats] = useState({});
@@ -68,52 +69,50 @@ const ProjectList = ({
   
   // 월별 프로젝트 통계 데이터 조회
   useEffect(() => {
+    console.log(`프로젝트 목록 통계 새로고침 시도: refreshTrigger =`, refreshTrigger);
     const fetchProjectStats = async () => {
       if (!projects || projects.length === 0 || !year || !month) {
-        console.log('통계 API 호출 건너뛼: 데이터 부족', { projects: projects?.length || 0, year, month });
+        console.log('통계 API 호출 건너뛰: 데이터 부족', { projects: projects?.length || 0, year, month });
         return;
       }
       
-      console.log(`프로젝트 통계 조회 시작: ${year}년 ${month}월, 프로젝트 ${projects.length}개`);
+      console.log(`프로젝트 통계 조회 시작: ${year}년 ${month}월, 프로젝트 ${projects.length}개, 트리거: ${refreshTrigger}`);
       setLoading(true);
       
       try {
-        // 이미 해당 월의 통계가 있는지 확인
-        const existingStats = {};
-        let needsFetch = false;
+        // 언제나 새로운 통계 데이터 가져오기
+        console.log('프로젝트 통계 새로 가져오기 시도');
         
-        projects.forEach(project => {
-          const stat = projectStats[project.id];
-          if (!stat || stat.year !== year || stat.month !== month) {
-            needsFetch = true;
-          } else {
-            existingStats[project.id] = stat;
-          }
-        });
-        
-        // 이미 모든 프로젝트의 통계가 있다면 API 호출 필요 없음
-        if (!needsFetch && Object.keys(existingStats).length === projects.length) {
-          console.log('프로젝트 통계: 이미 캡시된 데이터 사용');
-          setLoading(false);
-          return;
+        try {
+          // 프로젝트 ID를 숫자로 변환하여 확실히 가져오기
+          const statsPromises = projects.map(project => {
+            const projectId = parseInt(project.id, 10) || project.id;
+            return projectService.getProjectMonthlyStats(projectId, year, month);
+          });
+          
+          console.log('프로젝트 통계 API 호출 중...', statsPromises.length);
+          const results = await Promise.all(statsPromises);
+          console.log('프로젝트 통계 API 호출 결과 받음:', results.length);
+          
+          // 결과를 프로젝트 ID를 키로 하는 객체로 변환
+          const newStats = {};
+          results.forEach(stat => {
+            if (stat && stat.projectId) {
+              console.log(`프로젝트 ${stat.projectId} 통계 갱신: 완료 ${stat.completedHours} / 요구 ${stat.requiredHours} 시간, 진도 ${stat.progressPercentage}%`);
+              newStats[stat.projectId] = {
+                ...stat,
+                year: parseInt(year),
+                month: parseInt(month)
+              };
+            }
+          });
+          
+          // 이전 통계 대체하지 않고 완전히 새로 설정
+          setProjectStats(newStats);
+        } catch (fetchError) {
+          console.error('프로젝트 통계 API 호출 오류:', fetchError);
+          throw fetchError;
         }
-        
-        const statsPromises = projects.map(project => 
-          projectService.getProjectMonthlyStats(project.id, year, month)
-        );
-        
-        const results = await Promise.all(statsPromises);
-        
-        // 결과를 프로젝트 ID를 키로 하는 객체로 변환
-        const newStats = {};
-        results.forEach(stat => {
-          if (stat && stat.projectId) {
-            console.log(`프로젝트 ${stat.projectId} 통계: 완료 ${stat.completedHours} / 요구 ${stat.requiredHours} 시간, 진도 ${stat.progressPercentage}%`);
-            newStats[stat.projectId] = stat;
-          }
-        });
-        
-        setProjectStats(prev => ({ ...prev, ...newStats }));
       } catch (error) {
         console.error('프로젝트 월별 통계 조회 중 오류:', error);
       } finally {
@@ -122,7 +121,7 @@ const ProjectList = ({
     };
     
     fetchProjectStats();
-  }, [projects, year, month]);
+  }, [projects, year, month, refreshTrigger]);
   
   // 프로젝트 진행률 계산 (월별 통계 API 데이터 사용)
   const calculateProgress = (project) => {

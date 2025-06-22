@@ -58,6 +58,9 @@ function Calendar() {
     selectedProject: null
   });
   
+  // 일정 변경 시 프로젝트 상세 정보 새로고침을 위한 트리거 값
+  const [scheduleRefreshTrigger, setScheduleRefreshTrigger] = useState(0);
+  
   // 캘린더 초기 날짜 설정
   const initialDate = year && month ? `${year}-${month.padStart(2, '0')}-01` : new Date();
   
@@ -141,6 +144,15 @@ function Calendar() {
         // 기존 일정 수정
         const result = await updateSchedule(scheduleId, scheduleData);
         console.log('일정 수정 결과:', result);
+        
+        // 프로젝트 목록 새로고침 (프로젝트 진행률 업데이트를 위해)
+        if (scheduleData.type === 'PROJECT' && scheduleData.projectId) {
+          console.log('프로젝트 관련 일정이 수정됨. 프로젝트 목록 새로고침...');
+          await fetchProjects();
+          // 프로젝트 상세 정보 새로고침을 위한 트리거 값 증가
+          setScheduleRefreshTrigger(prev => prev + 1);
+        }
+        
         // 성공 시 토스트 메시지 표시
         if (result && result.success) {
           showToast(`'${scheduleData.title}' 일정이 수정되었습니다.`, 'success');
@@ -151,6 +163,15 @@ function Calendar() {
         // 새 일정 생성
         const result = await createSchedule(scheduleData);
         console.log('일정 생성 결과:', result);
+        
+        // 프로젝트 목록 새로고침 (프로젝트 진행률 업데이트를 위해)
+        if (scheduleData.type === 'PROJECT' && scheduleData.projectId) {
+          console.log('프로젝트 관련 일정이 생성됨. 프로젝트 목록 새로고침...');
+          await fetchProjects();
+          // 프로젝트 상세 정보 새로고침을 위한 트리거 값 증가
+          setScheduleRefreshTrigger(prev => prev + 1);
+        }
+        
         // 성공 시 토스트 메시지 표시
         if (result && result.success) {
           showToast(`'${scheduleData.title}' 일정이 생성되었습니다.`, 'success');
@@ -164,17 +185,28 @@ function Calendar() {
       showToast(errorMsg, 'error');
       throw error; // 오류를 호출자에게 전파
     }
-  }, [updateSchedule, createSchedule, showToast]);
+  }, [updateSchedule, createSchedule, showToast, fetchProjects, setScheduleRefreshTrigger]);
   
   // 일정 삭제 핸들러
   const handleScheduleDelete = useCallback(async (scheduleId) => {
-    if (window.confirm('정말 이 일정을 삭제하시겠습니까?')) {
+    // ScheduleModal 컴포넌트에서 확인 창을 표시하므로 여기서는 바로 삭제 처리
+    
       try {
-        // 삭제 전에 일정 정보 가져오기 (제목 표시용)
+        // 삭제 전에 일정 정보 가져오기 (제목 표시용 및 프로젝트 정보 확인용)
         const targetSchedule = schedules.find(s => s.id === scheduleId);
         const scheduleName = targetSchedule ? targetSchedule.title : '선택한 일정';
+        const isProjectSchedule = targetSchedule && targetSchedule.type === 'PROJECT' && targetSchedule.projectId;
         
         const result = await deleteSchedule(scheduleId);
+        
+        // 프로젝트 관련 일정이었다면 프로젝트 목록 갱신
+        if (isProjectSchedule) {
+          console.log('프로젝트 관련 일정이 삭제됨. 프로젝트 목록 새로고침...');
+          await fetchProjects();
+          // 프로젝트 상세 정보 새로고침을 위한 트리거 값 증가
+          setScheduleRefreshTrigger(prev => prev + 1);
+        }
+        
         if (result && result.success) {
           showToast(`'${scheduleName}' 일정이 삭제되었습니다.`, 'success');
         }
@@ -182,8 +214,7 @@ function Calendar() {
         console.error('일정 삭제 중 오류 발생:', error);
         showToast('일정 삭제 중 오류가 발생했습니다.', 'error');
       }
-    }
-  }, [deleteSchedule, schedules, showToast]);
+  }, [deleteSchedule, schedules, showToast, fetchProjects, setScheduleRefreshTrigger]);
   
   // 일정 모달 닫기
   const closeScheduleModal = () => {
@@ -360,6 +391,7 @@ function Calendar() {
             selectedProjectId={null}
             year={parseInt(year) || currentDate.getFullYear()}
             month={parseInt(month) || currentDate.getMonth() + 1}
+            refreshTrigger={scheduleRefreshTrigger}
           />
           
           <div className="export-section">
@@ -515,7 +547,6 @@ function Calendar() {
           />
         </div>
       </div>
-      
       </div>
       
       {/* 일정 모달 */}
@@ -540,6 +571,7 @@ function Calendar() {
         onClose={closeProjectModal}
         selectedYear={parseInt(year)}
         selectedMonth={parseInt(month)}
+        refreshTrigger={scheduleRefreshTrigger}
       />
     </div>
   );

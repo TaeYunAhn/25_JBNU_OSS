@@ -383,12 +383,12 @@
 
 /* 시간대 구분선 - 30분 단위 */
 .fc .fc-timegrid-slot.fc-timegrid-slot-lane.fc-timegrid-slot-minor {
-  border-bottom: 1px dotted #aaa !important;
+  border-bottom: 1px solid #ccc !important;
 }
 
 /* 시간대 구분선 - 정시 (12시, 1시 등) */
 .fc .fc-timegrid-slot.fc-timegrid-slot-lane:not(.fc-timegrid-slot-minor) {
-  border-bottom: 1px solid #ccc !important;
+  border-bottom: 1px dotted #aaa !important;
 }
 
 /* 시간 레이블 스타일 강화 */

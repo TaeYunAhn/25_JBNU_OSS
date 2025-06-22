@@ -12,6 +12,7 @@ import './ProjectDetail.css';
  * @param {Function} props.onClose - 닫기 버튼 클릭 핸들러
  * @param {number} props.selectedYear - 선택한 연도
  * @param {number} props.selectedMonth - 선택한 월
+ * @param {number} props.refreshTrigger - 새로고침 트리거 값 (변경 시 데이터 재로드)
  * @returns {React.ReactElement}
  */
 const ProjectDetail = ({ 
@@ -20,7 +21,8 @@ const ProjectDetail = ({
   onDelete, 
   onClose,
   selectedYear,
-  selectedMonth
+  selectedMonth,
+  refreshTrigger = 0
 }) => {
   const [projectStats, setProjectStats] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,7 @@ const ProjectDetail = ({
         const year = selectedYear || date.getFullYear();
         const month = selectedMonth || date.getMonth() + 1;
         
-        console.log(`프로젝트 통계 정보 가져오기: 프로젝트 ID ${project.id}, 연도: ${year}, 월: ${month}`);
+        console.log(`프로젝트 통계 정보 가져오기: 프로젝트 ID ${project.id}, 연도: ${year}, 월: ${month}, 새로고침 트리거: ${refreshTrigger}`);
         
         const stats = await projectService.getProjectMonthlyStats(project.id, year, month);
         setProjectStats(stats);
@@ -49,7 +51,7 @@ const ProjectDetail = ({
     };
     
     fetchProjectStats();
-  }, [project?.id, selectedYear, selectedMonth]);
+  }, [project, selectedYear, selectedMonth, refreshTrigger]);
   
   if (!project) {
     return <div className="project-detail-empty">프로젝트 정보를 불러올 수 없습니다.</div>;
