@@ -45,17 +45,11 @@ const ProjectList = ({
       return []; // 년-월 정보가 없으면 빈 배열 반환
     }
     
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    
     // 선택된 년-월의 첫날과 마지막 날
     const startOfMonth = new Date(year, month - 1, 1);
     const endOfMonth = new Date(year, month, 0);
     
     return projects.filter(project => {
-      // 프로젝트가 이미 종료되었는지 확인
-      const isActive = project.endDate >= todayStr;
-      
       // 프로젝트의 시작일과 종료일
       const projectStart = new Date(project.startDate);
       const projectEnd = new Date(project.endDate);
@@ -64,8 +58,8 @@ const ProjectList = ({
       const isInMonth = 
         (projectStart <= endOfMonth) && (projectEnd >= startOfMonth);
       
-      // 활성화 상태이면서 해당 월에 포함된 프로젝트만 반환
-      return isActive && isInMonth;
+      // 해당 월에 포함된 프로젝트만 반환 (활성화 상태 무관)
+      return isInMonth;
     });
   };
   

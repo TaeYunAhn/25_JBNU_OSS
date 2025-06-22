@@ -66,12 +66,17 @@ function Calendar() {
   // 일정 변경 시 프로젝트 상세 정보 새로고침을 위한 트리거 값
   const [scheduleRefreshTrigger, setScheduleRefreshTrigger] = useState(0);
   
+  // 스케줄 관련 액션 후 트리거 업데이트를 위한 핸들러
+  const updateRefreshTrigger = useCallback(() => {
+    setScheduleRefreshTrigger(prev => prev + 1);
+  }, []);
+  
   // 캘린더 초기 날짜 설정
   const initialDate = year && month ? `${year}-${month.padStart(2, '0')}-01` : new Date();
   
-  // 초기 데이터 로드
+  // 초기 데이터 로드 (컴포넌트 마운트 시 한 번만 실행)
   useEffect(() => {
-    fetchProjects();
+    fetchProjects(true); // 캐시를 무시하고 강제로 새로고침
     if (year && month) {
       fetchMonthlySchedules(parseInt(year), parseInt(month));
     }
@@ -86,15 +91,17 @@ function Calendar() {
     }
   }, [year, month]);
   
-  // 월별 프로젝트 통계 데이터 조회
+  // 월별 프로젝트 통계 데이터 조회 - 프로젝트 목록이나 월이 변경된 경우에만 실행
   useEffect(() => {
-    const fetchProjectStats = async () => {
+    // 디바운스 처리를 위한 타이머
+    const timer = setTimeout(async () => {
       if (!projects || projects.length === 0 || !year || !month) {
         return;
       }
 
       setStatsLoading(true);
       try {
+        console.log(`${projects.length}개 프로젝트의 ${year}년 ${month}월 통계 조회 시작`);
         const statsPromises = projects.map(project => 
           projectService.getProjectMonthlyStats(project.id, year, month)
         );
@@ -108,15 +115,16 @@ function Calendar() {
           }
         });
         setProjectStats(newStats);
+        console.log('프로젝트 통계 조회 완료');
       } catch (error) {
         console.error('프로젝트 월별 통계 조회 중 오류:', error);
         setProjectStats({}); // 오류 발생 시 초기화
       } finally {
         setStatsLoading(false);
       }
-    };
+    }, 300); // 300ms 디바운스
 
-    fetchProjectStats();
+    return () => clearTimeout(timer); // 타이머 정리
   }, [projects, year, month, scheduleRefreshTrigger]);
   
   // 일정 클릭 시 상세 정보 표시
