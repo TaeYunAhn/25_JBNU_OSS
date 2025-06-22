@@ -4,7 +4,7 @@
   "description": "소프트웨어 중심대학 학생을 위한 활동일지 캘린더",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "landscape",
   "background_color": "#ffffff",
   "theme_color": "#4a6cf7",
   "scope": "/",
