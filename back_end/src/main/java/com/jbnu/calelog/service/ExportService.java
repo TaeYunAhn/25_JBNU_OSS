@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,6 +18,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,6 +45,7 @@ public class ExportService {
      * @return 엑셀 파일 바이트 배열
      * @throws IOException 파일 생성 중 오류
      */
+    @Transactional(readOnly = true)
     public byte[] generateActivityReport(int year, int month, Long projectId, Long userId) throws IOException {
         log.info("ExportService.generateActivityReport 호출됨 - year: {}, month: {}, projectId: {}, userId: {}", year, month, projectId, userId);
         
@@ -77,10 +81,43 @@ public class ExportService {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("활동일지_" + year + "_" + month);
 
-        createHeader(workbook, sheet);
-        populateData(workbook, sheet, schedules);
+        // 프로젝트별로 그룹화
+        Map<String, List<Schedule>> schedulesByProject = schedules.stream()
+            .collect(Collectors.groupingBy(schedule -> {
+                if (schedule.getProject() != null) {
+                    return schedule.getProject().getName();
+                } else {
+                    return "개인 활동";
+                }
+            }));
 
-        // 컬럼 자동 크기 조정 (7개 컬럼으로 증가)
+        int currentRow = 0;
+        
+        // 각 프로젝트별로 표 생성
+        for (Map.Entry<String, List<Schedule>> entry : schedulesByProject.entrySet()) {
+            String projectName = entry.getKey();
+            List<Schedule> projectSchedules = entry.getValue();
+            
+            // 프로젝트 제목 추가
+            if (currentRow > 0) {
+                currentRow += 2; // 프로젝트 간 간격
+            }
+            createProjectTitle(workbook, sheet, projectName, currentRow);
+            currentRow += 1;
+            
+            // 헤더 생성
+            createHeaderAtRow(workbook, sheet, currentRow);
+            currentRow += 2;
+            
+            // 데이터 입력
+            currentRow = populateDataAtRow(workbook, sheet, projectSchedules, currentRow);
+            
+            // 합계 행 추가
+            addProjectSummary(workbook, sheet, projectSchedules, currentRow);
+            currentRow += 1;
+        }
+
+        // 컬럼 자동 크기 조정
         for (int i = 0; i < 7; i++) {
             sheet.autoSizeColumn(i);
         }
@@ -96,29 +133,43 @@ public class ExportService {
     }
 
     /**
-     * 엑셀 헤더 생성
+     * 프로젝트 제목 생성
      */
-    private void createHeader(Workbook workbook, Sheet sheet) {
+    private void createProjectTitle(Workbook workbook, Sheet sheet, String projectName, int rowIndex) {
+        CellStyle titleStyle = workbook.createCellStyle();
+        Font titleFont = workbook.createFont();
+        titleFont.setBold(true);
+        titleFont.setFontHeightInPoints((short) 12);
+        titleStyle.setFont(titleFont);
+        titleStyle.setAlignment(HorizontalAlignment.LEFT);
+        
+        Row titleRow = sheet.createRow(rowIndex);
+        Cell titleCell = titleRow.createCell(0);
+        titleCell.setCellValue("■ " + projectName);
+        titleCell.setCellStyle(titleStyle);
+    }
+
+    /**
+     * 지정된 행에 헤더 생성
+     */
+    private void createHeaderAtRow(Workbook workbook, Sheet sheet, int startRow) {
         CellStyle headerStyle = createHeaderStyle(workbook);
 
-        // 첫 번째 행: 근무일자, 요일, 근무시간, 내용
-        Row headerRow1 = sheet.createRow(0);
+        Row headerRow1 = sheet.createRow(startRow);
         String[] headers1 = {"근무일자", "요일", "근무시간", "내용"};
         for (int i = 0; i < headers1.length; i++) {
-            int colIndex = i < 2 ? i : (i == 2 ? i : i + 3); // 근무시간 열이 3개로 확장됨
+            int colIndex = i < 2 ? i : (i == 2 ? i : i + 3);
             Cell cell = headerRow1.createCell(colIndex);
             cell.setCellValue(headers1[i]);
             cell.setCellStyle(headerStyle);
         }
         
-        // 셀 병합
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 2, 5)); // 근무시간 (시작|~|종료|시간)
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 0, 0)); // 근무일자
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 1, 1)); // 요일
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 6, 6)); // 내용
+        sheet.addMergedRegion(new CellRangeAddress(startRow, startRow, 2, 5));
+        sheet.addMergedRegion(new CellRangeAddress(startRow, startRow + 1, 0, 0));
+        sheet.addMergedRegion(new CellRangeAddress(startRow, startRow + 1, 1, 1));
+        sheet.addMergedRegion(new CellRangeAddress(startRow, startRow + 1, 6, 6));
 
-        // 두 번째 행: 시작, ~, 종료, 시간
-        Row headerRow2 = sheet.createRow(1);
+        Row headerRow2 = sheet.createRow(startRow + 1);
         String[] headers2 = {"시작", "~", "종료", "시간"};
         for (int i = 0; i < headers2.length; i++) {
             Cell cell = headerRow2.createCell(i + 2);
@@ -128,54 +179,93 @@ public class ExportService {
     }
 
     /**
-     * 데이터 행 생성
+     * 지정된 행에 데이터 입력
      */
-    private void populateData(Workbook workbook, Sheet sheet, List<Schedule> schedules) {
+    private int populateDataAtRow(Workbook workbook, Sheet sheet, List<Schedule> schedules, int startRow) {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yy. M. d.");
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         CellStyle dataStyle = createDataStyle(workbook);
-        int rowNum = 2;
+        int rowNum = startRow;
 
         for (Schedule schedule : schedules) {
             Row row = sheet.createRow(rowNum++);
 
-            // 근무일자 (yy. M. d. 형식)
             Cell dateCell = row.createCell(0);
             dateCell.setCellValue(schedule.getStartTime().format(dateFormatter));
             dateCell.setCellStyle(dataStyle);
 
-            // 요일 (한글 약자)
             Cell dayOfWeekCell = row.createCell(1);
             dayOfWeekCell.setCellValue(schedule.getStartTime().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN));
             dayOfWeekCell.setCellStyle(dataStyle);
 
-            // 시작 시간 (HH:mm 형식)
             Cell startTimeCell = row.createCell(2);
             startTimeCell.setCellValue(schedule.getStartTime().format(timeFormatter));
             startTimeCell.setCellStyle(dataStyle);
 
-            // "~" 구분자
             Cell separatorCell = row.createCell(3);
             separatorCell.setCellValue("~");
             separatorCell.setCellStyle(dataStyle);
 
-            // 종료 시간 (HH:mm 형식)
             Cell endTimeCell = row.createCell(4);
             endTimeCell.setCellValue(schedule.getEndTime().format(timeFormatter));
             endTimeCell.setCellStyle(dataStyle);
 
-            // 시간 (정수 시간)
             Cell durationCell = row.createCell(5);
             long hours = Duration.between(schedule.getStartTime(), schedule.getEndTime()).toHours();
             durationCell.setCellValue(hours);
             durationCell.setCellStyle(dataStyle);
 
-            // 내용
             Cell contentCell = row.createCell(6);
             contentCell.setCellValue(schedule.getContent());
             contentCell.setCellStyle(dataStyle);
         }
+        
+        return rowNum; // 다음 행 번호 반환
     }
+
+    /**
+     * 프로젝트 합계 행 추가
+     */
+    private void addProjectSummary(Workbook workbook, Sheet sheet, List<Schedule> schedules, int rowIndex) {
+        CellStyle summaryStyle = workbook.createCellStyle();
+        Font boldFont = workbook.createFont();
+        boldFont.setBold(true);
+        summaryStyle.setFont(boldFont);
+        summaryStyle.setAlignment(HorizontalAlignment.CENTER);
+        summaryStyle.setBorderTop(BorderStyle.THIN);
+        summaryStyle.setBorderBottom(BorderStyle.THIN);
+        summaryStyle.setBorderLeft(BorderStyle.THIN);
+        summaryStyle.setBorderRight(BorderStyle.THIN);
+        summaryStyle.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
+        summaryStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        
+        Row summaryRow = sheet.createRow(rowIndex);
+        
+        Cell totalLabelCell = summaryRow.createCell(0);
+        totalLabelCell.setCellValue("총 근무시간");
+        totalLabelCell.setCellStyle(summaryStyle);
+        
+        // 빈 셀들도 스타일 적용
+        for (int i = 1; i < 5; i++) {
+            Cell emptyCell = summaryRow.createCell(i);
+            emptyCell.setCellStyle(summaryStyle);
+        }
+        
+        long totalHours = schedules.stream()
+            .mapToLong(schedule -> Duration.between(schedule.getStartTime(), schedule.getEndTime()).toHours())
+            .sum();
+            
+        Cell totalHoursCell = summaryRow.createCell(5);
+        totalHoursCell.setCellValue(totalHours + " 시간");
+        totalHoursCell.setCellStyle(summaryStyle);
+        
+        Cell lastCell = summaryRow.createCell(6);
+        lastCell.setCellStyle(summaryStyle);
+        
+        // 합계 행 병합
+        sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, 4));
+    }
+
 
     /**
      * 헤더 스타일 생성
