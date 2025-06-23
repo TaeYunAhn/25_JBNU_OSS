@@ -1,239 +1,331 @@
-## 개발 환경 실행 가이드
+# Calelog - 소중대 활동일지 자동화 시스템
 
-### 🚀 간단한 로컬 개발 (권장)
+> **전북대학교 SW중심대학사업단 학생들을 위한 일정 관리 및 활동일지 자동 생성 플랫폼**
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring_Boot-3.5.0-6DB33F?style=for-the-badge&logo=spring&logoColor=white" />
+  <img src="https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" />
+  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Docker-24.0.2-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/Nginx-Alpine-009639?style=for-the-badge&logo=nginx&logoColor=white" />
+  <img src="https://img.shields.io/badge/AWS_EC2-Ubuntu-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" />
+  <img src="https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" />
+  <img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black" />
+  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" />
+  <img src="https://img.shields.io/badge/Let's_Encrypt-003A70?style=for-the-badge&logo=letsencrypt&logoColor=white" />
+</p>
+
+---
+
+## 목차
+
+- [프로젝트 개요](#-프로젝트-개요)
+- [문제 정의 및 해결책](#-문제-정의-및-해결책)
+- [주요 기능](#-주요-기능)
+- [기술 스택](#-기술-스택)
+- [시스템 아키텍처](#-시스템-아키텍처)
+- [핵심 구현 사항](#-핵심-구현-사항)
+- [로컬 실행 가이드](#-로컬-실행-가이드)
+
+---
+
+## 프로젝트 개요
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/b9fe4d93-a8e6-4020-ba7c-67542b4104cf" width="1000" alt="메인 화면">
+</div>
+
+**Calelog**(Calendar + Log)는 전북대학교 SW중심대학사업단 학생들이 매월 작성해야 하는 활동일지의 번거로움을 해결하기 위해 개발된 웹 애플리케이션입니다.
+
+### 핵심 가치
+
+- **시간 효율성**: 활동일지 작성 시간을 **30분에서 3분으로 단축** (90% 개선)
+- **정확성 보장**: 서버 단 시간 중복 검증으로 **인적 오류 완전 제거**
+- **사용자 경험**: 직관적인 캘린더 UI와 원클릭 Excel 생성으로 **학습 곡선 최소화**
+
+### 배포 정보
+
+- **운영 사이트**: [https://callog.o-r.kr](https://callog.o-r.kr)
+- **안드로이드 앱**: [APK 다운로드](https://drive.google.com/file/d/1yURR8JMxy8Vay_0-Hee78nD35ZGf6vvK/view?usp=sharing)
+
+### 팀 구성
+
+| 이름 | 역할 | GitHub |
+|------|------|--------|
+| **김담은** | Frontend | [@dameun2224](https://github.com/dameun2224) |
+| **김소운** | Designer | [@rlathdns](https://github.com/rlathdns) |
+| **안태윤** | Backend, Infra | [@TaeYunAhn](https://github.com/TaeYunAhn) |
+| **배지혁** | Backend, DevOps | [@qowlgur121](https://github.com/qowlgur121) |
+
+---
+
+## 문제 정의 및 해결책
+
+### 기존 문제점
+
+전북대학교 SW중심대학사업단 학생들은 **매월 활동일지를 수기로 작성**해야 하는 상황에서 다음과 같은 문제를 겪고 있었습니다:
+
+1. **복잡한 일정 관리**
+   - TA 업무, 연구실 활동, 동아리, 개인 수업 등 다양한 활동의 시간 중복 확인 필요
+   - 수동으로 모든 일정을 대조하며 활동일지 작성
+
+2. **비효율적인 작업 과정**
+   - 월말마다 HWP 양식에 표를 그리고 활동 내역을 일일이 기입
+   - 시간 계산 실수로 인한 재작성 빈발
+   - 학생서명란을 위한 인쇄 과정 필수
+
+3. **휴먼 에러 발생**
+   - 일정 중복으로 인한 활동 불가능 상황
+   - 총 시간 계산 오류
+   - 활동일지 형식 불일치
+
+### 해결책
+
+**Calelog**는 이러한 문제들을 다음과 같이 해결합니다:
+
+- **통합 일정 관리**: 구글 캘린더 스타일의 직관적 UI로 모든 활동을 한 화면에서 관리
+- **자동 중복 검증**: 서버에서 실시간으로 시간 중복을 검증하여 충돌 방지
+- **원클릭 활동일지**: HWP 호환 XLSX 파일을 자동 생성하여 즉시 다운로드
+
+---
+
+## 주요 기능
+
+### 1. 사용자 인증 시스템
+- JWT 기반 로그인/회원가입
+- 자동 토큰 갱신으로 끊김 없는 사용자 경험
+- 사용자별 완전한 데이터 격리
+
+### 2. 프로젝트 관리
+- **CRUD 기능**: 프로젝트 생성, 수정, 삭제
+- **시각적 구분**: 프로젝트별 색상 코드 지정
+- **목표 관리**: 월별 필수 활동 시간 설정
+- **실시간 통계**: 진행률, 현재 월 시간, 활성 상태 자동 계산
+
+### 3. 일정 관리
+- **직관적 캘린더**: FullCalendar 기반 드래그 앤 드롭 지원
+- **일정 유형**: PROJECT(활동) / INACTIVE(비활동) 구분
+- **반복 일정**: 매일/매주/매월 패턴 지원
+- **중복 검증**: 서버에서 실시간 시간 충돌 검사
+
+### 4. 활동일지 자동 생성
+- **HWP 호환**: 소중대 공식 양식과 완벽 호환되는 XLSX 파일 생성
+- **프로젝트별 분리**: 각 프로젝트의 활동일지를 별도 표로 구성
+- **자동 계산**: 총 활동 시간 자동 산출
+- **즉시 다운로드**: 브라우저에서 바로 파일 다운로드
+
+### 5. PWA 지원
+- **모바일 최적화**: 스마트폰에서 네이티브 앱처럼 사용
+- **오프라인 지원**: Service Worker 기반 캐싱
+- **홈화면 추가**: 모바일 홈화면에 앱 아이콘으로 설치 가능
+
+---
+
+## 🛠 기술 스택
+
+### Frontend
+| 분야 | 기술 | 버전 | 역할 |
+|------|------|------|------|
+| **프레임워크** | React | 18.2.0 | UI 라이브러리 |
+| **상태 관리** | Context API + Hooks | - | 전역 상태 관리 |
+| **라우팅** | React Router | 6.15.0 | SPA 라우팅 |
+| **캘린더** | FullCalendar | 6.1.8 | 대화형 캘린더 UI |
+| **스타일링** | Styled Components | 6.0.7 | CSS-in-JS |
+| **HTTP 클라이언트** | Axios | 1.4.0 | API 통신 |
+| **PWA** | Workbox | - | 오프라인 지원 |
+
+### Backend
+| 분야 | 기술 | 버전 | 역할 |
+|------|------|------|------|
+| **프레임워크** | Spring Boot | 3.5.0 | 애플리케이션 백본 |
+| **언어** | Java | 17 | 주 개발 언어 |
+| **보안** | Spring Security + JWT | 6.5.0 | 인증/인가 시스템 |
+| **ORM** | Spring Data JPA | 3.5.0 | 객체-관계 매핑 |
+| **데이터베이스** | MySQL / H2 | 8.0 / 2.3.232 | 데이터 영속성 |
+| **API 문서** | SpringDoc OpenAPI | 2.8.9 | API 명세 자동화 |
+| **Excel 처리** | Apache POI | 5.2.4 | XLSX 파일 생성 |
+
+### DevOps & Infrastructure
+| 분야 | 기술 | 버전 | 역할 |
+|------|------|------|------|
+| **컨테이너** | Docker | 24.0.2 | 애플리케이션 컨테이너화 |
+| **오케스트레이션** | Docker Compose | V2 | 멀티 컨테이너 관리 |
+| **CI/CD** | GitHub Actions | - | 자동 빌드 및 배포 |
+| **클라우드** | AWS EC2 | Ubuntu 24.04 | 서버 호스팅 |
+| **웹서버** | Nginx | Alpine | 리버스 프록시, SSL 처리 |
+| **SSL** | Let's Encrypt | - | HTTPS 인증서 |
+
+---
+
+## 시스템 아키텍처
+
+### 전체 시스템 구조
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/0b77f860-e81e-4d4f-9003-9ef47e631cd2" width="1000" alt="시스템 아키텍처">
+</div>
+
+### CI/CD 파이프라인
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/33f3ac39-c1e6-42c1-89a3-13aab276152c" width="1000" alt="CI/CD">
+</div>
+
+---
+
+## 핵심 구현 사항
+
+### 1. 서버 단 시간 중복 검증
+
+```java
+public void validateScheduleConflict(Schedule newSchedule) {
+    List<Schedule> conflicts = scheduleRepository
+        .findConflictingSchedules(
+            newSchedule.getUserId(),
+            newSchedule.getStartTime(),
+            newSchedule.getEndTime(),
+            newSchedule.getId()
+        );
+    
+    if (!conflicts.isEmpty()) {
+        throw new ScheduleConflictException(conflicts);
+    }
+}
+```
+
+### 2. 프로젝트 통계 실시간 계산
+
+```java
+public ProjectStatistics calculateStatistics(Long projectId, int year, int month) {
+    List<Schedule> monthlySchedules = scheduleRepository
+        .findByProjectIdAndYearAndMonth(projectId, year, month);
+    
+    double totalHours = monthlySchedules.stream()
+        .mapToDouble(this::calculateDuration)
+        .sum();
+    
+    double progressRate = (totalHours / project.getMonthlyRequiredHours()) * 100;
+    
+    return new ProjectStatistics(totalHours, progressRate, isActive);
+}
+```
+
+### 3. HWP 호환 Excel 생성
+
+```java
+public byte[] generateActivityReport(int year, int month) {
+    try (Workbook workbook = new XSSFWorkbook()) {
+        Sheet sheet = workbook.createSheet("활동일지");
+        
+        for (Project project : projects) {
+            createProjectTable(sheet, project, schedules);
+        }
+        
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        return outputStream.toByteArray();
+    }
+}
+```
+
+### 4. JWT 기반 인증 시스템
+
+```java
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  FilterChain filterChain) {
+        String token = extractTokenFromHeader(request);
+        
+        if (token != null && jwtUtil.validateToken(token)) {
+            String userEmail = jwtUtil.getEmailFromToken(token);
+            Authentication auth = createAuthentication(userEmail);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        }
+        
+        filterChain.doFilter(request, response);
+    }
+}
+```
+
+### 5. Docker 기반 멀티 컨테이너 배포
+
+```yaml
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=calelog
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    
+  backend:
+    image: calelog-backend:latest
+    depends_on: [mysql]
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CALELOG_JWT_SECRET=${CALELOG_JWT_SECRET}
+    
+  frontend:
+    image: calelog-frontend:latest
+    
+  nginx:
+    image: nginx:alpine
+    ports: ["80:80", "443:443"]
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+    depends_on: [frontend, backend]
+```
+
+---
+
+## 로컬 실행 가이드
+
+### 빠른 시작 
+
 ```bash
-# 터미널 1: 백엔드 실행
+# 1. 백엔드 실행 (터미널 1)
 cd back_end
 ./gradlew bootRun
 
-# 터미널 2: 프론트엔드 실행  
+# 2. 프론트엔드 실행 (터미널 2)
 cd front_end
-npm install  # 최초 1회만 실행
+npm install
 npm start
 ```
-- **백엔드**: http://localhost:8080
-- **프론트엔드**: http://localhost:3000
-- **H2 콘솔**: http://localhost:8080/h2-console
-- **Swagger UI**: http://localhost:8080/swagger-ui/index.html
 
-### 🐳 Docker로 전체 시스템 테스트
+**접속 정보**:
+- 프론트엔드: http://localhost:3000
+- 백엔드 API: http://localhost:8080
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- H2 콘솔: http://localhost:8080/h2-console
+
+### Docker로 전체 시스템 실행
+
 ```bash
-# 전체 시스템 (nginx + SSL 포함)
+# 전체 시스템 (MySQL + 백엔드 + 프론트엔드 + Nginx)
 docker compose up -d
 
-# 접속 URL
+# 접속
 # HTTP: http://localhost
-# HTTPS: https://localhost (Self-signed 인증서 경고 무시)
+# HTTPS: https://localhost (Self-signed 인증서)
 ```
 
-## API 테스트 가이드 (Swagger)
+### API 테스트 (Swagger UI)
 
-### 1단계: Swagger UI 접속
-- URL: http://localhost:8080/swagger-ui/index.html
-- 백엔드가 실행 중인 상태에서 접속
+1. **회원가입**: POST `/api/auth/signup`
+2. **로그인**: POST `/api/auth/login` → `accessToken` 복사
+3. **인증 설정**: Swagger UI 상단 🔒 버튼 → `Bearer {토큰}` 입력
+4. **API 테스트**: 프로젝트/일정 CRUD 기능 테스트
 
-### 2단계: JWT 인증 API 테스트
-
-#### 회원가입 (POST /api/auth/signup)
-```json
-{
-  "email": "test@jbnu.ac.kr",
-  "password": "password123", 
-  "fullName": "김테스트"
-}
-```
-
-#### 로그인 (POST /api/auth/login)
-```json
-{
-  "email": "test@jbnu.ac.kr",
-  "password": "password123"
-}
-```
-→ 응답에서 `accessToken`과 `refreshToken` 복사해두기
-
-#### 토큰 갱신 (POST /api/auth/refresh)
-```json
-{
-  "refreshToken": "로그인에서_받은_refreshToken_붙여넣기"
-}
-```
-
-### 3단계: JWT 인증으로 API 테스트 방법
-
-#### Swagger UI에서 JWT 토큰 설정
-1. 로그인 API에서 받은 `accessToken` 전체를 복사
-   ```
-   예시: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ0ZXN0QGpibm...
-   ```
-
-2. Swagger UI 페이지 상단 오른쪽의 🔒 **Authorize** 버튼 클릭
-
-3. 팝업창에서 **Value** 입력란에 다음과 같이 입력:
-   ```
-   Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ0ZXN0QGpibm...
-   ```
-   ⚠️ **주의**: `Bearer ` (Bearer + 공백) 뒤에 토큰을 붙여야 함
-
-4. **Authorize** 버튼 클릭하여 인증 완료
-
-5. 🔒 표시가 있는 모든 API 테스트 가능 (프로젝트 CRUD, 일정 관리 등)
-
-#### 토큰 만료 시 대응방법
-- Access Token은 24시간 후 만료됨
-- 만료 시 `/api/auth/refresh` API로 새 토큰 발급
-- 또는 다시 로그인하여 새 토큰 획득
-
-## Git Branch 전략
-
-> **메인 브랜치**: main, develop
-
-> **기능 브랜치**: feature
->
-> > 브랜치 명명 방식은 feature/[기능이름]
-
-> **핫픽스 브랜치**: hotfix
->
-> > main -> hotfix -> main
-
-### 개발 워크플로우
-```bash
-# 1. 작업 시작 전 필수
-git remote update
-git pull
-
-# 2. 새 기능 브랜치 생성
-git checkout main
-git checkout -b feature/기능이름
-
-# 3. 개발 완료 후 커밋 및 푸시
-git add .
-git commit -m "feat: 기능 설명"
-git push -u origin feature/기능이름
-
-# 4. GitHub에서 PR 생성 후 팀원 리뷰 받기
-```
-
-## 트러블슈팅
-
-### 백엔드 관련
-- **포트 8080 사용 중 오류**: `lsof -ti:8080 | xargs kill -9` 실행 후 재시작
-- **H2 콘솔 접속 안됨**: 브라우저에서 http://localhost:8080/h2-console 직접 입력
-- **Gradle 빌드 실패**: `./gradlew clean build` 실행
-
-### 프론트엔드 관련  
-- **npm install 취약점 경고**: 정상적인 경고입니다. `npm start` 실행 가능
-- **포트 3000 사용 중**: 다른 포트 사용하거나 `lsof -ti:3000 | xargs kill -9`
-- **모듈 없음 오류**: `rm -rf node_modules package-lock.json && npm install`
-
-### API 연동 관련
-- **CORS 오류**: 백엔드와 프론트엔드 모두 실행 중인지 확인
-- **API 401 오류**: Swagger에서 JWT 토큰 인증 후 테스트
-- **네트워크 오류**: `http://localhost:8080/swagger-ui/index.html`에서 API 직접 테스트
-
-&nbsp;
-
-## Commit, PR시
-
-- Rule 1 : Commit양식은 아래를 따릅니다.
-- Rule 2 : 제목은 영어로, 본문은 한글로 작성하여 주세요.
-
-```
-# <타입>: <제목>
-
-##### 제목은 최대 50 글자까지만 입력 ############## -> |
-
-
-# 본문은 위에 작성
-######## 본문은 한 줄에 최대 72 글자까지만 입력 ########################### -> |
-
-# 꼬릿말은 아래에 작성: ex) #이슈 번호
-
-# --- COMMIT END ---
-# <타입> 리스트
-#   feat    : 기능 (새로운 기능)
-#   fix     : 버그 (버그 수정)
-#   refactor: 리팩토링
-#   style   : 스타일 (코드 형식, 세미콜론 추가: 비즈니스 로직에 변경 없음)
-#   docs    : 문서 (문서 추가, 수정, 삭제)
-#   test    : 테스트 (테스트 코드 추가, 수정, 삭제: 비즈니스 로직에 변경 없음)
-#   chore   : 기타 변경사항 (빌드 스크립트 수정 등)
-# ------------------
-#     제목 첫 글자를 대문자로
-#     제목은 명령문으로
-#     제목 끝에 마침표(.) 금지
-#     제목과 본문을 한 줄 띄워 분리하기
-#     본문은 "어떻게" 보다 "무엇을", "왜"를 설명한다.
-#     본문에 여러줄의 메시지를 작성할 땐 "-"로 구분
-# ------------------
-```
-
-```
-ex)
-docs: Update README
-
-가독성이 더 좋은 commit 메시지로 업데이트 하였습니다.
-```
-
-## 주석 Convention
-
-- Rule 3 : 함수, 클래스 단위로 아래 주석 형식을 따라주세요.
-  - description은 전체적인 기능, 동작이 복잡하다면 자세하게 써주세요.
-
-```
- /**
-  *@author Suin-Jeong, jeongiun@jbnu.ac.kr
-  *@date 2023-01-01
-  *@description 상단에 고정적으로 위치하는 Header
-  *             로고, Main Navigator, 검색창,
-  *             KR/EN 버튼, Side Navigator 포함
-  */
-```
-
-- Rule 4 : 함수 안에 큰 컴포넌트 단위로 한줄주석 혹은 return문 내에 주석을 달아주세요.
-
-```
-// return 문 외
-// 한줄 주석
-
-{/* return 문 내 */}
-{/* 메뉴, 검색창, 언어버튼 */}
-{/* 사이드 메뉴 */}
-```
-
-## Code Convention
-
-Rule 5 : 기본적인 Convention은 VS Code 확장 Prettier을 사용합니다.
-
-- 파일 저장 시 서식이 자동 지정되도록 Format On Save 기능을 사용해주세요.
-
-## Code Review
-
-Rule 6 : PR된 Code를 Review하시고 이상 없어보이면 LGTM(Look Good To Me) 댓글을 남겨주세요.  
-Rule 7 : 더 좋은 방법이나 수정하면 좋을 것 같은 부분 댓글로 남겨주세요.  
-Rule 8 : Code에 관련된 부분만 지적하여 주세요.  
-Rule 9 : LGTM 3명 즉 3명이상의 Code Review를 통과하면 Merge합니다.
-
-## Issue Convention
-
-Rule 10 : 이슈 작성시 아래의 형식을 따라주세요.
-
-```
-## 📒 이슈 내용
-> "이슈 내용 작성"
-
-## 📑 상세 내용
-1. "상세 내용 1"
-2. "상세 내용 2"
-
-## ✔️ 체크리스트
-- [ ] 상세 내용 1.
-- [ ] 상세 내용 2.
-```
-
-## Configuration Management
-
-Rule 11 : 하루의 개발을 시작하기 전에 형상 관리를 위해 다음 명령어를 수행해주세요
-
-- git remote update
-- git pull
+---
